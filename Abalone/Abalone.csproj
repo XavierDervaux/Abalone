@@ -132,6 +132,7 @@
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Controllers\SuccesController.cs" />
+    <Compile Include="Models\Database\SQL_CREDENTIALS.cs" />
     <Compile Include="Models\Metier\Historique.cs" />
     <Compile Include="Models\Metier\Joueur.cs" />
     <Compile Include="Models\Metier\Partie.cs" />
