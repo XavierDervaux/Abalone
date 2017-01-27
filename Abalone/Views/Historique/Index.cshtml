@@ -1,0 +1,84 @@
+﻿@using Abalone.Models;
+@{Layout = null;}
+@RenderPage("~/Views/Header.cshtml")
+<div id="corps">
+    <a href="/Menu/Index" class="button-back right">
+        <button type="button" class="btn btn-primary btn-lg">Retour au menu</button>
+    </a>
+    <h1>Mes statistiques</h1>
+    <table class="table table-bordered">
+        <tr>
+            <th colspan="2" class="th-title">Mes parties</th>
+        </tr>
+        <tr>
+            <th class="grey">Jouées</th>
+            <td class="info">@ViewData["jouees"]</td>
+        </tr>
+        <tr>
+            <th class="grey">Gagnées</th>
+            <td class="success">@ViewData["gagnes"]</td>
+        </tr>
+        <tr>
+            <th class="grey">Perdues</th>
+            <td class="danger">@ViewData["perdues"]</td>
+        </tr>
+        <tr>
+            <th class="grey">Abandonnées</th>
+            <td class="warning">@ViewData["forfait"]</td>
+        </tr>
+    </table>
+    <h1>Mon historique</h1>
+    <table class="table">
+        <tr>
+            <th class="th-title">Adversaire</th>
+            <th class="th-title">Résultat</th>
+            <th class="th-title">Date de la partie</th>
+        </tr>
+        @if ( ((List<Historique>) ViewData["liste"]).Count == 0) {
+            <tr>
+                <td colspan="3"> <pre>Vous n'avez encore joué aucune partie.</pre></td>
+            </tr>
+        } else {
+            foreach (Historique item in (List<Historique>)ViewData["liste"]) {
+                if(item.Gagnant.Id == ((Joueur)ViewData["joueur"]).Id) {
+                    <tr class="success">
+                        <td>
+                            @item.Perdant.Pseudo
+                        </td>
+                        <td>
+                            @item.ScoreGagnant - @item.ScorePerdant
+                        </td>
+                        <td>
+                            @item.Date.ToString("dd/MM/yyyy")
+                        </td>
+                    </tr>
+                } else if(item.EstForfait) {
+                    <tr class="warning">
+                        <td>
+                            @item.Gagnant.Pseudo
+                        </td>
+                        <td>
+                            @item.ScoreGagnant - @item.ScorePerdant
+                        </td>
+                        <td>
+                            @item.Date.ToString("dd/MM/yyyy")
+                        </td>
+                    </tr>
+                } else {
+                    <tr class="danger">
+                        <td>
+                            @item.Gagnant.Pseudo
+                        </td>
+                        <td>
+                            @item.ScoreGagnant - @item.ScorePerdant
+                        </td>
+                        <td>
+                            @item.Date.ToString("dd/MM/yyyy")
+                        </td>
+                    </tr>
+                }
+            }
+        }
+    </table>
+</div>
+@RenderPage("~/Views/Footer.cshtml")

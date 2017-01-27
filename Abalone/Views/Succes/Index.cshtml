@@ -1,0 +1,46 @@
+﻿@using Abalone.Models;
+@{Layout = null;}
+@RenderPage("~/Views/Header.cshtml")
+<div id="corps">
+    <a href="/Menu/Index" class="button-back right">
+        <button type="button" class="btn btn-primary btn-lg">Retour au menu</button>
+    </a>
+    <h1>Succès</h1>
+    <table class="table table">
+        <tr>
+            <th colspan="2" class="th-title">Mes succès accomplis</th>
+        </tr>
+        @if ( ((List<Achievement>)ViewData["accomplis"]).Count == 0){
+            <tr>
+                <td> <pre>Aucun succès n'a encore été accompli !</pre></td>
+            </tr>
+        } else {
+            foreach(Achievement item in ((List<Achievement>)ViewData["accomplis"])){
+                <tr class="achievement">
+                    <td>
+                        <h4>@item.Nom</h4>
+                        <pre>@item.Description</pre>
+                    </td>
+                </tr>
+            }
+        }
+        <tr>
+            <th colspan="2" class="th-title">Les succès en cours</th>
+        </tr>
+        @if ( ((List<Achievement>)ViewData["pasEncoreAccomplis"]).Count == 0){
+            <tr>
+                <td> <pre>Félicitations, tous les succès ont été accomplis !</pre></td>
+            </tr>
+        } else {
+            foreach(Achievement item in ((List<Achievement>)ViewData["pasEncoreAccomplis"])){
+                <tr class="achievement">
+                    <td>
+                        <h4>@item.Nom</h4>
+                        <pre>@item.Description</pre>
+                    </td>
+                </tr>
+            }
+        }
+    </table>
+</div>
+@RenderPage("~/Views/Footer.cshtml")

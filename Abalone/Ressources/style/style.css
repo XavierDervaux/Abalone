@@ -1,0 +1,285 @@
+* {  
+    margin : 0 auto;
+}
+
+body{
+    background-position: top center;
+    background-image: url(img/background.png);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: black;
+}
+
+h1{
+    color : white;
+}
+
+table{
+    background-color: white;
+}
+
+li > button {
+    margin-top: 7px;
+}
+#corps { 
+    max-width: 1000px;
+    margin-top: 100px;
+}
+
+#contentConnexion { 
+    max-width: 700px; 
+    background-color:  white; 
+    padding: 10px; 
+    border-radius: 5px;
+}
+
+.row>a{
+    color : #337ab7;
+}
+.row>a :hover{
+    color : #31527c;
+}
+
+.text-center {
+    text-align: center;
+}
+.right {
+    float:  right;
+}
+.tab-pane {
+    padding-top: 30px;
+}
+
+.h100px {
+    height: 200px;
+}
+.glyphicon.center:before {
+    vertical-align: middle;
+}
+.glyph-menu {
+    display: block;
+    vertical-align: middle;
+    text-align: center; 
+    font-size: 70px;
+}
+.menu-a:hover{
+    text-decoration: none;
+}
+
+.navbar-brand>img {margin-top: -20px;}
+
+.center {
+    text-align: center;
+}
+
+.thumbnail:hover  {
+	color : #31527c;
+    background-color: #F8F8F8;
+}
+.thumbnail>h1, .thumbnail>button>h1{
+	color : #337ab7;
+}
+.thumbnail>h1:hover, .thumbnail>button>h1:hover{
+	color : #31527c;
+}
+
+.grey { 
+    background-color: #F8F8F8;
+}
+.w-ms-100 {
+    max-width: 100px;
+}
+
+
+.bg-danger{
+    border-radius: 5px;
+    padding: 10px;
+    color : #3e0808;
+}
+.bg-danger>span+span{
+    margin-left: 10px;
+}
+
+.th-title {
+    background-color: #091b20; 
+    color : white;
+}
+
+.hidden {
+    visibility: hidden;
+}
+
+.no-design{
+    border: none;
+    padding: 0px;
+    margin: 0px;
+    background: rgba(0, 0, 0, 0.0)
+}
+
+.button-back{
+    margin-top: -15px;
+}
+
+.define-th{
+    height: 35px;
+    padding-left: 10px;
+}
+
+.td-listPlayer{
+    padding-left: 10px;
+    border: solid #dddddd 1px;
+    height: 40px;
+}
+
+.mrg-right-10{
+    margin-right: 10px;
+}
+
+.wth-100 {
+    width: 100px;
+}
+.
+
+/*
+    Achievement
+*/
+.achievement>td>h4{
+    font-weight: bold;
+}
+
+/*
+    HUB Player
+*/
+#hubScore{
+    width: 630px;
+    height: 60px;
+    position: absolute;
+    top: 52px;
+    margin-left: 205px;
+    background-color: #323232;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    color : white;
+    border : solid black 1px;
+    border-top: 0px;
+}
+
+#hubScorePos{ 
+    position: absolute;
+    top: -12px;
+}
+
+#hubScorePos>div {
+    display: inline-block;
+}
+
+.hubscore{
+    width: 50px;
+    padding-left: 20px;
+}
+
+.hubPlayer{
+    width: 255px;
+}
+.pos-right{
+    float: right;
+}
+.pos-left{
+    float: left;
+}
+
+#nameP1, #nameP2{
+    display: inline-block;
+    width: 210px;
+}
+#nameP1{
+    text-align: right;
+}
+#nameP2{
+    padding-left: 10px;
+}   
+
+#buttonAbandonner {
+    position: absolute;
+    right: 150px;
+    top: 3px;
+}
+
+/*
+    Plateau
+*/
+#backgroundPlateau{
+    z-index: -1;
+    background-image: url(img/plateau/plateau.png);
+    width: 1000px;
+    height: 866px;
+    position: absolute;
+}
+#plateauPartie{
+    z-index: 10;
+    padding-top: 120px;
+    
+}
+#syncPartie{
+    color : white;
+    text-align: center;
+    font-size: 120px;
+}
+
+@keyframes toRight {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+#syncPartie>span{
+    animation: toRight 12s linear 0s infinite;
+}
+.rowBille{
+    height: 70px;
+}
+
+.bille { 
+    width: 70px;
+    height: 70px;
+    background-image: url(img/bille_empty.png);
+    display: inline-block;
+    margin-left: -4px;
+    margin-right: 0px;
+} 
+
+#whoPlayed{
+    position: absolute;
+    top :-15px;
+    text-align: center;
+    color : #D9534F;
+    margin-left: 205px;
+    width: 630px;
+}
+
+#finPartie, #syncPartie{
+    text-align: center;
+    background-color: #222222;
+    border-radius: 10px;
+    max-width: 500px;
+    height: 450px;
+}
+
+#syncPartie{
+    height: 280px;
+    padding-top: 20px;
+}
+#finPartieGlyph{
+    font-size: 200px;
+    height: 200px;
+}
+#finPartieTitre{
+    font-size: 80px;
+}
+#finPartieMessage{
+    font-size: 30px;
+}
+
+.mleft-325 {margin-left: 325px;}
+.mleft-295 {margin-left: 295px;}
+.mleft-265 {margin-left: 265px;}
+.mleft-235 {margin-left: 235px;}
+.mleft-205 {margin-left: 205px;}
