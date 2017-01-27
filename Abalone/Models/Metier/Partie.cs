@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic; 
 
-namespace Abalone.Models {
+namespace Abalone.Models { //Giselle
     public class Partie {
 	    public static List<Partie> listParties = new List<Partie>(); //Les parties en cours.
 	    private static int idManuel = 1;
