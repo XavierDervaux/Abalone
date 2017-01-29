@@ -1,14 +1,18 @@
 using System;
-using Oracle.ManagedDataAccess.Client;
+using System.Data.SqlClient;
 
 namespace Abalone.Models {
     public class SQLRequest {
-        static OracleConnection connect = new OracleConnection();
+        static SqlConnection connect = new SqlConnection();
 
-        public static OracleConnection GetInstance() {
+        public static SqlConnection GetInstance() {
             if (connect == null || connect.State == System.Data.ConnectionState.Closed) {
                 try {
-                    connect.ConnectionString = SQL_CREDENTIALS.SERVER; //A faire
+                    connect.ConnectionString =  "Data Source="      + SQL_CREDENTIALS.SERVER   + ";"+
+                                                "Initial Catalog="  + SQL_CREDENTIALS.DATABASE + ";"+
+                                                "User ID="          + SQL_CREDENTIALS.USER     + ";"+
+                                                "Password="         + SQL_CREDENTIALS.PASSWORD + ";"+
+                                                "MultipleActiveResultSets=true;";
                     connect.Open();
                 } catch (Exception e) {
                     System.Diagnostics.Debug.WriteLine(e.Message);

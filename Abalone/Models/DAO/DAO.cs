@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
+using System.Data.SqlClient;
 
 namespace Abalone.Models {
     public abstract class DAO<T> {
-        protected OracleConnection connect = null;
+        protected SqlConnection connect = null;
 
-        public DAO(OracleConnection conn) {
+        public DAO(SqlConnection conn) {
             this.connect = conn;
         }
 

@@ -1,61 +1,54 @@
 using System;
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
 using System.Data;
+using System.Data.SqlClient;
 
 namespace Abalone.Models {
     public class JoueurDAO : DAO<Joueur>{
-	    public JoueurDAO(OracleConnection conn) : base(conn){ }
+	    public JoueurDAO(SqlConnection conn) : base(conn){ }
 	
-	    public override bool Create(Joueur obj){		
-		    int returning;
-		    bool res = true;
+	    public override bool Create(Joueur obj) {
+		    bool res = false;
+            string sql = "INSERT INTO joueur(pseudo, mdp, email) OUTPUT INSERTED.id VALUES(@pseudo, @mdp, @email);";
 
-		    try {
-                OracleCommand cmd = new OracleCommand("pkg_joueur.createjoueur", connect);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.BindByName = true;
-                cmd.Parameters.Add("Return_Value", OracleDbType.Int32, ParameterDirection.ReturnValue);
-                cmd.Parameters.Add("pseudo", "varchar2").Value = obj.Pseudo;
-                cmd.Parameters.Add("mdp", "varchar2").Value = obj.Mdp;
-                cmd.Parameters.Add("email", "varchar2").Value = obj.Email;
-                returning = cmd.ExecuteNonQuery();
-			
-			    if(returning != 0){ //L'insert à bien eu lieu
-                    obj.Id = int.Parse(cmd.Parameters["Return_Value"].Value.ToString());
+            try {
+                using (SqlCommand cmd = new SqlCommand(sql, connect)){
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add(new SqlParameter("pseudo", obj.Pseudo));
+                    cmd.Parameters.Add(new SqlParameter("mdp", obj.Mdp));
+                    cmd.Parameters.Add(new SqlParameter("email", obj.Email));
+                    obj.Id = (int)cmd.ExecuteScalar();
                 }
+                res = true;
             } catch (Exception e) {
                 System.Diagnostics.Debug.WriteLine(e.Message);
-                res = false;
 		    }
 		    return res;
 	    }
 	
-	    public override bool Delete(Joueur obj){
-		    return false;
-	    }
+	    public override bool Delete(Joueur obj){ return false; }
 	
 	    public override bool Update(Joueur obj){
 		    bool res = false;
-		
-		    if(obj.Id == 0){ //L'objet vient d'etre créé et ne sort pas de la DB
-                Console.WriteLine("Erreur, vous ne pouvez pas mettre un enregistrement à jour sur base de cet objet.");
-                Console.WriteLine("Réessayez avec un objet provenant de la BDD.\n");
-		    }else{
+            string sql = "UPDATE joueur SET pseudo=@pseudo, mdp=@mdp, email=@email WHERE id=@id";
+
+            if (obj.Id > 0){ //L'objet vient d'etre créé et ne sort pas de la DB
 			    try {
-                    OracleCommand cmd = new OracleCommand("pkg_joueur.updateJoueur", connect);
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add("v_pseudo", "varchar2").Value = obj.Pseudo;
-                    cmd.Parameters.Add("v_mdp", "varchar2").Value    = obj.Mdp;
-                    cmd.Parameters.Add("v_email", "varchar2").Value  = obj.Email;
-                    cmd.Parameters.Add("v_id", "number").Value       = obj.Id;
-                    cmd.ExecuteNonQuery();
+                    using (SqlCommand cmd = new SqlCommand(sql, connect)) {
+                        cmd.Parameters.Add(new SqlParameter("pseudo", obj.Pseudo));
+                        cmd.Parameters.Add(new SqlParameter("mdp", obj.Mdp));
+                        cmd.Parameters.Add(new SqlParameter("email", obj.Email));
+                        cmd.Parameters.Add(new SqlParameter("id", obj.Id));
+                        cmd.ExecuteNonQuery();
+                    }
 				    res = true;
                 } catch (Exception e) {
                     System.Diagnostics.Debug.WriteLine(e.StackTrace);
                 }
+		    } else {
+                System.Diagnostics.Debug.WriteLine("Erreur, vous ne pouvez pas mettre un enregistrement à jour sur base de cet objet.");
+                System.Diagnostics.Debug.WriteLine("Réessayez avec un objet provenant de la BDD.\n");
 		    }
-
 		    return res;
 	    }
 	
@@ -64,50 +57,50 @@ namespace Abalone.Models {
 		    Joueur res = null;
 
 		    try {
-                OracleCommand cmd = new OracleCommand("SELECT * FROM joueur WHERE id = :idJoueur", connect);
-                cmd.CommandType = CommandType.Text;
-                cmd.Parameters.Add(new OracleParameter(":idJoueur", id));
-                OracleDataReader odr = cmd.ExecuteReader();
+                string sql = "SELECT * FROM joueur WHERE id = @idJoueur";
+                using (SqlCommand cmd = new SqlCommand(sql, connect)) {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add(new SqlParameter("@idJoueur", id));
 
-                if (odr != null){
-                    while (odr.Read()){
-                        res = new Joueur(id, odr.GetString(1), odr.GetString(2), odr.GetString(3), adf.GetAchievJoueurDAO().Find(id));
+                    using (SqlDataReader sdr = cmd.ExecuteReader()){
+                        if (sdr != null){
+                            while (sdr.Read()){
+                                res = new Joueur(id, sdr.GetString(1), sdr.GetString(2), sdr.GetString(3), adf.GetAchievJoueurDAO().Find(id));
+                            }
+                        }
                     }
                 }
-                odr.Close();
             } catch (Exception e) {
                 System.Diagnostics.Debug.WriteLine(e.Message);
             }
-		
 		    return res;
 	    }
 	
 	    public Joueur Find(String email){
-		    DAOFactory adf = (DAOFactory) AbstractDAOFactory.GetFactory(0);
+            DAOFactory adf = (DAOFactory) AbstractDAOFactory.GetFactory(0);
 		    Joueur res = null;
 
 		    try {
-                OracleCommand cmd = new OracleCommand("SELECT * FROM joueur WHERE email = :email", connect);
-                cmd.CommandType = System.Data.CommandType.Text;
-                cmd.Parameters.Add(new OracleParameter(":email", email));
-                OracleDataReader odr = cmd.ExecuteReader();
+                string sql = "SELECT * FROM joueur WHERE email = @email";
+                using (SqlCommand cmd = new SqlCommand(sql, connect)) {
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Add(new SqlParameter("@email", email));
 
-                if (odr != null){
-                    while (odr.Read()){
-                        int id = odr.GetInt32(0);
-                        res = new Joueur(id, odr.GetString(1), odr.GetString(2), odr.GetString(3), adf.GetAchievJoueurDAO().Find(id));
+                    using (SqlDataReader sdr = cmd.ExecuteReader()){
+                        if (sdr != null){
+                            while (sdr.Read()){
+                                int id = sdr.GetInt32(0);
+                                res = new Joueur(id, sdr.GetString(1), sdr.GetString(2), sdr.GetString(3), adf.GetAchievJoueurDAO().Find(id));
+                            }
+                        }
                     }
                 }
-                odr.Close();
             } catch (Exception e) {
                 System.Diagnostics.Debug.WriteLine(e.Message);
-            }
-		
+            }		
 		    return res;
 	    }
 	
-	    public override List<Joueur> GetAll(){
-		    return null;
-	    }
+	    public override List<Joueur> GetAll(){ return null; }
     }
 }

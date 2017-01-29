@@ -1,9 +1,9 @@
 using System.Collections.Generic;
-using Oracle.ManagedDataAccess.Client;
+using System.Data.SqlClient;
 
 namespace Abalone.Models{
     public class DAOFactory : AbstractDAOFactory{
-	    private static OracleConnection conn = SQLRequest.GetInstance();
+	    private static SqlConnection conn = SQLRequest.GetInstance();
 
 	    public override DAO<Achievement> GetAchievementDAO(){
 		    return new AchievementDAO(conn);
