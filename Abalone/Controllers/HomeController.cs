@@ -13,7 +13,7 @@ namespace Abalone.Controllers{
                 Response.Redirect("/Menu/Index"); return null;
             } else //N'est pas encore connecté, on affiche le formulaire de connexion/inscription
                 res = View("Index");
-            //ViewData["titre"] = "- Connexion";
+                ViewData["titre"] = "- Connexion";
             return res;
         }
 
@@ -25,7 +25,7 @@ namespace Abalone.Controllers{
                 inscription();
             else
                 deconnexion();
-            ViewData["titre"] = "- Connexion";
+                ViewData["titre"] = "- Connexion";
             return View("Index");//Index se chargera de l'erreur s'il y en a une
         }
 

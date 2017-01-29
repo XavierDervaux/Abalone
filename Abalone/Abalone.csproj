@@ -205,7 +205,7 @@
     <Content Include="Views\Succes\Index.cshtml" />
     <Content Include="Views\Historique\Index.cshtml" />
     <Content Include="Views\Settings\Index.cshtml" />
-    <Content Include="Views\Matchmaking\testSQL.cshtml" />
+    <Content Include="Views\Matchmaking\Index.cshtml" />
     <Content Include="Ressources\fonts\glyphicons-halflings-regular.eot" />
     <Content Include="Ressources\fonts\glyphicons-halflings-regular.ttf" />
     <Content Include="Ressources\fonts\glyphicons-halflings-regular.woff" />
