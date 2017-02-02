@@ -1,50 +1,66 @@
-/*using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+using Abalone.Models.WebSockets;
+using Microsoft.Web.WebSockets;
+using Newtonsoft.Json;
+using System; 
+using System.IO;
+using System.Net.Sockets;
 
-namespace Abalone.Models{
-    //@ServerEndpoint("/joueurSocket")
-    public class JoueurWebSocketServer {
-	    private JoueurHandler sessionHandler;
-	
-	    public void OnOpen(Session session) { 
-		    this.sessionHandler.addSession(session);
-	    }
-	
-        public void OnClose(Session session) { 
-    	    this.sessionHandler.removeSession(session);
+namespace Abalone.Models
+{
+    public class JoueurWebSocketController : WebSocketHandler
+    {
+        public void OnOpen(TcpClient session)
+        {
+            SessionHandler sessionHandler = SessionHandler.Instance;
+            sessionHandler.Session.AddSession(session);
         }
-        
-        public void OnError(Throwable error) { 
-            //Logger.getLogger(JoueurWebSocketServer.class.getName()).log(Level.SEVERE, null, error);
-        }
-    
-        public void OnMessage(String message, Session session) {
-            try (JsonReader reader = Json.createReader(new StringReader(message))) {
-                JsonObject jsonMessage = reader.readObject(); 
 
-                if ("add".equals(jsonMessage.getString("action"))) { 
+        public override void OnError()
+        {
+
+        }
+
+        public void OnMessage(string message, TcpClient session)
+        {
+            try
+            {
+                /*JsonReader reader = Json.createReader(new StringReader(message));
+                JsonObject jsonMessage = reader.readObject();
+
+                SessionHandler sessionHandler = SessionHandler.Instance;
+
+                if ("add".Equals(jsonMessage.getString("action")))
+                {
                     bJoueur bean = new bJoueur();
-                    bean.setSession(session);
-                    bean.setJoueur_pseudo(jsonMessage.getString("pseudo"));
-                    bean.setJoueur_email(jsonMessage.getString("email"));
-                    this.sessionHandler.gestionDoublon(bean);
+                    bean.Session = session;
+                    bean.Joueur_pseudo = jsonMessage.getString("pseudo");
+                    bean.Joueur_email = jsonMessage.getString("email");
+                    sessionHandler.Session.GestionDoublon(bean);
                 }
-            
-                if("demande".equals(jsonMessage.getString("action"))) {
-                    int destId = (int) jsonMessage.getInt("destinataire");
-                    this.sessionHandler.gestionDemande(destId, session);
+
+                if ("demande".Equals(jsonMessage.getString("action")))
+                {
+                    int destId = (int)jsonMessage.getInt("destinataire");
+                     sessionHandler.Session.GestionDemande(destId, session);
                 }
-            
-                if("reponse".equals(jsonMessage.getString("action"))) {
-        		    int destId = (int) jsonMessage.getInt("destinataire");
-            	    boolean confirm = (boolean) jsonMessage.getBoolean("confirm");
-            	    this.sessionHandler.gestionConfirmation(destId, confirm, session);
-                }
-            } catch (Exception e){
-			    e.printStackTrace();
+
+                if ("reponse".Equals(jsonMessage.getString("action")))
+                {
+                    int destId = (int)jsonMessage.getInt("destinataire");
+                    bool confirm = (bool)jsonMessage.getBoolean("confirm");
+                    sessionHandler.Session.GestionConfirmation(destId, confirm, session);
+                }*/
+            }
+            catch (Exception)
+            {
+
             }
         }
-    }  
-}*/
+
+        public void OnClose(TcpClient session)
+        {
+            SessionHandler sessionHandler = SessionHandler.Instance;
+            sessionHandler.Session.RemoveSession(session);
+        }
+    }
+}
