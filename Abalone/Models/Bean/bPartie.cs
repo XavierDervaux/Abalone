@@ -4,7 +4,7 @@ namespace Abalone.Models{
         //private Session session_noir = null;
         //private Session session_blanc = null;
 
-        public int Uid_partie { get; set; }
+        public int Uid_partie { get { return this.uid_partie; } set { this.uid_partie = value; } }
         //public Session Session_noir { get; set; }
         //public Session Session_blanc { get; set; }
     }

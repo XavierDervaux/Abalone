@@ -7,8 +7,7 @@ using System.Web.Mvc;
 
 namespace Abalone.Controllers{
     public class MatchmakingController : Controller{
-        // GET: Matchmaking
-        public ActionResult Index(){
+        public ActionResult Index(){ // GET: Matchmaking
             ActionResult res = null;
             bool estConnecte = Identification.estConnecte(Session, Request.Cookies);
 

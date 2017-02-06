@@ -10,12 +10,23 @@
 
         <script type="text/javascript" src="@Url.Content("~/Ressources/js/jquery-3.1.1.min.js")"></script>
         <script type="text/javascript" src="@Url.Content("~/Ressources/js/bootstrap.min.js")"></script>
+        <script type="text/javascript" src="~/Scripts/jquery.signalR-2.2.1.min.js"></script>
+        <script type="text/javascript" src="~/signalr/hubs"></script>
         <script type="text/javascript" src="@Url.Content("~/Ressources/js/abalone.js")"></script>
         <script type="text/javascript" src="@Url.Content("~/Ressources/js/socket.js")"></script>
         <script type="text/javascript" src="@Url.Content("~/Ressources/js/partie.js")"></script>
     </head>
 
-    <body>
+    @if (ViewData["joueur"] == null){
+        @Html.Raw("<body>");
+    } else if (ViewData["noir_pseudo"] != null){
+        @Html.Raw(String.Format("<body onload=\"init(); initMatchMaking('"+ ((Joueur)ViewData["joueur"]).Pseudo + "', '" + ((Joueur)ViewData["joueur"]).Email + "');" +
+        "initPartie('" + ViewData["id_partie"] +"', '" + ViewData["noir_pseudo"] + "', '" + ViewData["noir_email"] + "', '" + ViewData["blanc_pseudo"] + "', '" + ViewData["blanc_email"] + "', '" + ( ((Joueur)ViewData["joueur"]).Email) + "');\">"
+        ));
+    } else {
+        @Html.Raw(String.Format("<body onload=\"init(); initMatchMaking('" + ((Joueur)ViewData["joueur"]).Pseudo + "', '" + ((Joueur)ViewData["joueur"]).Email + "');\">"));
+    }
+        
         <header>
             <nav class="navbar navbar-inverse">
                 <div class="container-fluid">
