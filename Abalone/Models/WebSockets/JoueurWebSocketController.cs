@@ -9,10 +9,11 @@ namespace Abalone.Models
 {
     public class JoueurWebSocketController : WebSocketHandler
     {
-        public void OnOpen(TcpClient session)
+        private static WebSocketCollection SESSIONS = new WebSocketCollection();
+
+        public override void OnOpen()
         {
-            SessionHandler sessionHandler = SessionHandler.Instance;
-            sessionHandler.Session.AddSession(session);
+            SESSIONS.Add(this);
         }
 
         public override void OnError()
@@ -20,36 +21,40 @@ namespace Abalone.Models
 
         }
 
-        public void OnMessage(string message, TcpClient session)
+        public override void OnMessage(string message)
         {
             try
             {
-                /*JsonReader reader = Json.createReader(new StringReader(message));
-                JsonObject jsonMessage = reader.readObject();
+                string action;
+                JsonTextReader reader = new JsonTextReader(new StringReader(message));
+                reader.Read();
+                action = reader.Value.ToString();
 
                 SessionHandler sessionHandler = SessionHandler.Instance;
 
-                if ("add".Equals(jsonMessage.getString("action")))
+                if ("add".Equals(action))
                 {
                     bJoueur bean = new bJoueur();
-                    bean.Session = session;
-                    bean.Joueur_pseudo = jsonMessage.getString("pseudo");
-                    bean.Joueur_email = jsonMessage.getString("email");
+                   // bean.Session = session;
+                    reader.Read();
+                    bean.Joueur_pseudo = reader.Value.ToString();
+                    reader.Read();
+                    bean.Joueur_email = reader.Value.ToString();
                     sessionHandler.Session.GestionDoublon(bean);
                 }
 
-                if ("demande".Equals(jsonMessage.getString("action")))
+                if ("demande".Equals(action))
                 {
-                    int destId = (int)jsonMessage.getInt("destinataire");
-                     sessionHandler.Session.GestionDemande(destId, session);
+                   /* int destId = (int)jsonMessage.getInt("destinataire");
+                     sessionHandler.Session.GestionDemande(destId, session);*/
                 }
 
-                if ("reponse".Equals(jsonMessage.getString("action")))
+                if ("reponse".Equals(action))
                 {
-                    int destId = (int)jsonMessage.getInt("destinataire");
+                    /*int destId = (int)jsonMessage.getInt("destinataire");
                     bool confirm = (bool)jsonMessage.getBoolean("confirm");
-                    sessionHandler.Session.GestionConfirmation(destId, confirm, session);
-                }*/
+                    sessionHandler.Session.GestionConfirmation(destId, confirm, session);*/
+                }
             }
             catch (Exception)
             {
@@ -57,10 +62,9 @@ namespace Abalone.Models
             }
         }
 
-        public void OnClose(TcpClient session)
+        public override void OnClose()
         {
-            SessionHandler sessionHandler = SessionHandler.Instance;
-            sessionHandler.Session.RemoveSession(session);
+            SESSIONS.Remove(this);
         }
     }
 }
