@@ -7,40 +7,34 @@ var player_invitation;
         if (window.location.href.indexOf("/Matchmaking/Index") > -1) { //Si l'adresse contiens ceci, autrement dit si on est sur cette page
             joueurSocket = $.connection.matchmakingHub;
 
+            making = new MatchMaking();
+            player_current = new Joueur(-1, pseudo, email);
+            making.addJoueur(player_current);
+            
             joueurSocket.client.receiveAdd = function (id, pseudo, email) {
-                window.alert("1");
-                //making.addJoueur(new Joueur(id, pseudo, email));
+                making.addJoueur(new Joueur(id, pseudo, email));
             };
 
             joueurSocket.client.receiveRemove = function (id) {
-                window.alert("2");
-                //making.removeJoueur(new Joueur(id, "", ""));
+                making.removeJoueur(new Joueur(id, "", ""));
             };
 
             joueurSocket.client.receiveDemande = function (id, joueur_pseudo, joueur_email) {
-                window.alert("3");
-                //getInvitation(json);
+                getInvitation(id, joueur_pseudo, joueur_email);
             };
 
             joueurSocket.client.receiveConfirmation = function (id, joueur_pseudo, joueur_email, confirm) {
-                window.alert("4");
-                //getRespond(json);
+                getRespond(id, joueur_pseudo, joueur_email, confirm);
             };
 
             joueurSocket.client.receiveAlreadyConnected = function (joueur_pseudo) {
-                window.alert("5");
-                //getDejaConnect(json);
+               getDejaConnect(joueur_pseudo);
             };
 
             $.connection.hub.start().done(function (){ //Entame la connexion
-                window.alert("0");
                 sendJoueur(player_current);
             });
 
-            making = new MatchMaking();
-            player_current = new Joueur(-1, pseudo, email); 
-            making.addJoueur(player_current);
-        
             $('#invitation').on('hide.bs.modal', function (e) {
                 if(player_invitation != null){
                     sendResponse(player_invitation, false);
@@ -56,8 +50,8 @@ var player_invitation;
     function MatchMaking(){
         this.joueurs= [];
 
-        this.addJoueur = function(joueur){
-    	    if(this.joueurs[this.joueurs.length-1] == null){
+        this.addJoueur = function (joueur) {
+            if (this.joueurs[this.joueurs.length - 1] == null && (this.joueurs.length - 1) > -1){
     		    this.joueurs[this.joueurs.length-1] = joueur;
     	    } else{
     		    this.joueurs.push(joueur);
@@ -128,7 +122,7 @@ var player_invitation;
                    //Propriété du bouton
                     button.className ="btn btn-lg btn-success mrg-right-10";
                     button.type="button";
-                    button.title="Invitation";
+                    button.title="Invitation"; 
                     button.innerHTML="Envoyer une invitation";
                
                     onClickNotification(button, item);
@@ -171,21 +165,21 @@ var player_invitation;
        }
     }
 
-    function getInvitation(json){
-        player_invitation = json;
-        $id('messageInvitation').innerHTML= json.pseudo_source + " veut jouer avec vous.";
+    function getInvitation(id, joueur_pseudo, joueur_email) {
+        player_invitation = new Joueur(id, joueur_pseudo, joueur_email);
+        $id('messageInvitation').innerHTML = joueur_pseudo + " veut jouer avec vous.";
         $('#invitation').modal('show');
     }
 
-    function getRespond(json){
-        if(json.confirm == true){
-            $id('respondMessageInvitation').innerHTML=json.pseudo_source + " a accepté votre invitation, lancement de la partie...";
+    function getRespond(id, joueur_pseudo, joueur_email, confirm){
+        if(confirm == true){
+            $id('respondMessageInvitation').innerHTML = joueur_pseudo + " a accepté votre invitation, lancement de la partie...";
             $('#respondInvitation').modal('show');
-            //request post Ã  faire
-            sendRequestPost(player_invitation.email);
+            //request post à faire
+            sendRequestPost(joueur_email);
             player_invitation = null;
         } else{
-            $id('respondMessageInvitation').innerHTML=json.pseudo_source + " a refusé votre invitation";
+            $id('respondMessageInvitation').innerHTML = joueur_pseudo + " a refusé votre invitation";
             $('#respondInvitation').modal('show');
         }
     }
@@ -211,5 +205,5 @@ var player_invitation;
     }
 
     function sendResponse(joueur, response) {
-        joueurSocket.server.reponse(joueur.id_source, response);
+        joueurSocket.server.reponse(joueur.id, response);
     }

@@ -21,7 +21,7 @@ namespace Abalone.Controllers{
         public override Task OnDisconnected(bool stopCalled){
             bJoueur bean = getJoueurBySession(Context.ConnectionId);
     	    sessions.Remove(Context.ConnectionId); //On le vire de la liste des sessions, on ne lui enverra plus les messages
-
+            
     	    if(bean != null){
 			    joueurs.Remove(bean);
 			    sendRemove(bean);
@@ -70,31 +70,27 @@ namespace Abalone.Controllers{
     // Sortie
     //----------------------------------------------
         private void sendFirstAdd(bJoueur bean, string session) {
-            Clients.User(session).receiveAdd(bean.Id, bean.Joueur_pseudo, bean.Joueur_email); //On envoie tous les joueurs a la personne qui vient de se co, pour qu'elle aie la liste à jour.
+            Clients.Client(session).receiveAdd(bean.Id, bean.Joueur_pseudo, bean.Joueur_email); //On envoie tous les joueurs a la personne qui vient de se co, pour qu'elle aie la liste à jour.
         }
     
 	    private void sendAdd(bJoueur bean) {
-            foreach(string session in sessions) {
-                Clients.User(session).receiveAdd(bean.Id, bean.Joueur_pseudo, bean.Joueur_email);
-            }
+            Clients.All.receiveAdd(bean.Id, bean.Joueur_pseudo, bean.Joueur_email);
         }
     
 	    private void sendRemove(bJoueur bean) {
-            foreach(string session in sessions) {
-                Clients.User(session).receiveRemove(bean.Id);
-            }
+            Clients.All.receiveRemove(bean.Id);
         }
     
 	    private void sendDemand(bJoueur bean, string session) {
-            Clients.User(session).receiveDemande(bean.Id, bean.Joueur_pseudo, bean.Joueur_email); //On envoie tous les joueurs a la personne qui vient de se co, pour qu'elle aie la liste à jour.
+            Clients.Client(session).receiveDemande(bean.Id, bean.Joueur_pseudo, bean.Joueur_email); //On envoie tous les joueurs a la personne qui vient de se co, pour qu'elle aie la liste à jour.
         }
 
         private void sendConfirmation(bJoueur bean, bool confirm, string session) {
-            Clients.User(session).receiveConfirmation(bean.Id, bean.Joueur_pseudo, bean.Joueur_email, confirm); //On envoie tous les joueurs a la personne qui vient de se co, pour qu'elle aie la liste à jour.
+            Clients.Client(session).receiveConfirmation(bean.Id, bean.Joueur_pseudo, bean.Joueur_email, confirm); //On envoie tous les joueurs a la personne qui vient de se co, pour qu'elle aie la liste à jour.
         }
 
         private void sendAlreadyConnected(bJoueur bean, string session) {
-            Clients.User(session).receiveAlreadyConnected(bean.Joueur_pseudo); //On envoie tous les joueurs a la personne qui vient de se co, pour qu'elle aie la liste à jour.
+            Clients.Client(session).receiveAlreadyConnected(bean.Joueur_pseudo); //On envoie tous les joueurs a la personne qui vient de se co, pour qu'elle aie la liste à jour.
         }
 
     // Méthodes privées
