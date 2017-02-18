@@ -1,10 +1,14 @@
-using System;
-using System.Collections.Generic;
+using Abalone.Models.Metier;
 
-namespace Abalone.Models{
+namespace Abalone.Models
+{
     public class bMove {
 	    private int type   = -1; //Le type  de déplacement
-	    private int ori_x1 = -1;
+
+        public Bille[] Origin { get; set; } = new Bille[3];
+        public Bille[] Destination { get; set; } = new Bille[3];
+
+        private int ori_x1 = -1;
 	    private int ori_y1 = -1;
 	    private int ori_x2 = -1;
 	    private int ori_y2 = -1;
@@ -17,7 +21,7 @@ namespace Abalone.Models{
 	    private int des_x3 = -1;
 	    private int des_y3 = -1;
 
-        public int Type   { get { return this.type; }   set { this.type   = value; } }
+        public int Type   { get; set; }
         public int Ori_x1 { get { return this.ori_x1; } set { this.ori_x1 = value; } }
         public int Ori_y1 { get { return this.ori_y1; } set { this.ori_y1 = value; } }
         public int Ori_x2 { get { return this.ori_x2; } set { this.ori_x2 = value; } }

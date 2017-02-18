@@ -1,10 +1,11 @@
 ﻿using Abalone.Models;
-using Microsoft.AspNet.SignalR;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Abalone.Controllers{
-    public class MatchmakingHub : Hub{
+namespace Abalone.Controllers
+{
+    public class MatchmakingHub : Microsoft.AspNet.SignalR.Hub
+    {
         private static int joueurId = 1;
         private static List<string> sessions = new List<string>();
         private static List<bJoueur> joueurs = new List<bJoueur>();

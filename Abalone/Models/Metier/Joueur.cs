@@ -108,5 +108,14 @@ namespace Abalone.Models{
 	    public override string ToString() {
 		    return "Joueur [id=" + id + ", pseudo=" + pseudo + ", email=" + email + ", achievs=" + achievs + "]";
 	    }
+
+        public override bool Equals(Object obj)
+        {
+           if(obj is Joueur)
+           {
+                return (this.pseudo == ((Joueur)obj).Pseudo && this.id == ((Joueur)obj).Id && this.email == ((Joueur)obj).Email) ? true : false;
+           }
+           return false;
+        }
     }
 }

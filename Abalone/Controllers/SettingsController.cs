@@ -7,21 +7,26 @@ using System.Web.Mvc;
 
 namespace Abalone.Controllers{
     public class SettingsController : Controller{
-        public ActionResult Index(){
+        public ActionResult Index()
+        {
             ActionResult res = null;
             bool estConnecte = Identification.estConnecte(Session, Request.Cookies);
 
-            if (estConnecte) { //On redirige vers le menu 
+            if (estConnecte)
+            { //On redirige vers le menu 
                 ViewData["titre"] = "- Paramètres";
                 ViewData["joueur"] = ((Joueur) Session["joueur"]);
                 res = View("Index");
-            } else {//N'est pas encore connecté, on affiche le formulaire de connexion/inscription
+            }
+            else
+            {//N'est pas encore connecté, on affiche le formulaire de connexion/inscription
                 Response.Redirect("/Home/Index");
             }
             return res;
         }
 
-        public ActionResult Post(){
+        public ActionResult Post()
+        {
             int res = -1;
             String output = null;
             String mail = Request.Form["emailSetting"];
@@ -30,11 +35,13 @@ namespace Abalone.Controllers{
 
             res = changementMail(mail, actuel);
     	    if(res <=0){ res = changementMdp(mdp, actuel); } //Si on a pas déjà trouvé une erreur avec le mail, alors on vérifie le mdp.
-		    if(res == 0) { //Au moins une opération s'est bien passé
+		    if(res == 0)
+            { //Au moins une opération s'est bien passé
 			    actuel.UpdateBDD();
 			    Session["joueur"] = actuel; //On met à jour la session
 			    Response.Redirect("/Menu/Index"); return null;
-		    } else { //Au moins une opération a échoué, on retourne l'erreur
+		    } else
+            { //Au moins une opération a échoué, on retourne l'erreur
 			    output = affichageSettings(res);
                 ViewData["erreur"] = output;
 		    }

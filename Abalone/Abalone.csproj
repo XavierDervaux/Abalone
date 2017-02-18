@@ -149,6 +149,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Content\bootstrap.css" />
+    <Content Include="Content\bootstrap.min.css" />
+    <Content Include="Content\Site.css" />
+    <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
     <Compile Include="App_Start\Startup.cs" />
     <Compile Include="Controllers\HistoriqueController.cs" />
@@ -157,8 +161,10 @@
     <Compile Include="Controllers\MenuController.cs" />
     <Compile Include="Controllers\SettingsController.cs" />
     <Compile Include="Controllers\SuccesController.cs" />
+    <Compile Include="Hub\PartieHub.cs" />
     <Compile Include="Hub\MatchmakingHub.cs" />
     <Compile Include="Models\Database\SQL_CREDENTIALS.cs" />
+    <Compile Include="Models\Metier\Bille.cs" />
     <Compile Include="Models\Metier\Historique.cs" />
     <Compile Include="Models\Metier\Joueur.cs" />
     <Compile Include="Models\Metier\Partie.cs" />
@@ -189,11 +195,21 @@
     <Content Include="Ressources\style\style.css" />
     <Content Include="Scripts\ai.0.22.9-build00167.js" />
     <Content Include="Scripts\ai.0.22.9-build00167.min.js" />
+    <Content Include="fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="fonts\glyphicons-halflings-regular.ttf" />
+    <Content Include="fonts\glyphicons-halflings-regular.eot" />
+    <None Include="Scripts\jquery-1.10.2.intellisense.js" />
+    <Content Include="Scripts\jquery-1.10.2.js" />
+    <Content Include="Scripts\jquery-1.10.2.min.js" />
+    <Content Include="Scripts\jquery-1.10.2.min.map" />
     <None Include="Scripts\jquery-1.6.4-vsdoc.js" />
+    <Content Include="Scripts\bootstrap.js" />
+    <Content Include="Scripts\bootstrap.min.js" />
     <Content Include="Scripts\jquery-1.6.4.js" />
     <Content Include="Scripts\jquery-1.6.4.min.js" />
     <Content Include="Scripts\jquery.signalR-2.2.1.js" />
     <Content Include="Scripts\jquery.signalR-2.2.1.min.js" />
+    <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
     </Content>
@@ -241,6 +257,9 @@
     <Content Include="Ressources\fonts\glyphicons-halflings-regular.woff2" />
     <None Include="Properties\PublishProfiles\abalone - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\abalone - Web Deploy.pubxml" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\Jouer\Index.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -250,7 +269,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Views\Jouer\" />
     <Folder Include="Views\WsMatchmaking\" />
   </ItemGroup>
   <PropertyGroup>

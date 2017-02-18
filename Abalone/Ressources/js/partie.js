@@ -1,20 +1,55 @@
 var partieSocket;
 var partie;
+var ressource = "/ressources/";
 
-function initPartie(uid, pseudoJNoir,emailJNoir, pseudoJBlanc, emailJBlanc, emailJCurrent){        
-        //On veut communiquer avec le socket
-        partieSocket = new WebSocket("ws://localhost:8080/Abalone/partieSocket");
-        partieSocket.onmessage = onMessagePartie;
-         
+function initPartie(uid, pseudoJNoir, emailJNoir, pseudoJBlanc, emailJBlanc, emailJCurrent) {    
+    if (window.location.href.indexOf("/Jouer/Index") > -1) {
+        joueurSocket = $.connection.partieHub;
+
+        joueurSocket.client.pret = function () {
+            setDebutPartie();
+        };
+        joueurSocket.client.move = function (mov) {
+            alert(mov);
+            setMouvementBille(json);
+            setScore(json);
+        };
+        joueurSocket.client.allowed = function (sNoir, sBlanc, mov) {
+            setMouvementBille(json, true);
+            setScore(sNoir, sBlanc);
+        };
+        joueurSocket.client.unallowed = function () {
+            inversionMatrice();
+            partie.plateau.billeMove.init();
+            resetBilleSelected();
+            setUnauthorized();
+        };
+        joueurSocket.client.surrend= function () {  //Abandon de l'adversaire
+            setFinPartie(true, true);
+        };
+        joueurSocket.client.timeout = function () { //L'adversaire à quitter violament 
+            setFinPartie(true, true);
+        };
+        joueurSocket.client.beginTurn = function () { //Changement de tour
+            partie.nextTurn();
+        };
+        joueurSocket.client.victoire = function (colorG) { //Victoire d'un joueur
+            if (colorG == partie.JoueurMe.color) {
+                setFinPartie(true, false);
+            } else {
+                setFinPartie(false, false);
+            }
+        };
+
         //Pour une utilisation correcte, on vire le responsive.
-        $id('corps').style.width="1000px";
-    
+        $id('corps').style.width = "1000px";
         //On inialise l'interface
-        initInterface(uid, pseudoJNoir,emailJNoir, pseudoJBlanc, emailJBlanc, emailJCurrent);
+        initInterface(uid, pseudoJNoir, emailJNoir, pseudoJBlanc, emailJBlanc, emailJCurrent);
+    }
 }
 
 
-function initInterface(uid, pseudoJNoir,emailJNoir, pseudoJBlanc,emailJBlanc, emailJCurrent){
+function initInterface(uid, pseudoJNoir,emailJNoir, pseudoJBlanc,emailJBlanc, emailJCurrent) {
     hideAll();
     show("syncPartie");
     
@@ -26,25 +61,24 @@ function initInterface(uid, pseudoJNoir,emailJNoir, pseudoJBlanc,emailJBlanc, em
     } else{
         partie = new Partie(joueur2, joueur1);
     }
-    partieSocket.onopen = function(){
-    	 sendPartiePlayer();
-    }
+    $.connection.hub.start().done(function () { //Entame la connexion
+        sendPartiePlayer();
+    });
 }
 
 
 /*****************************************************
  *
- *  Fonctions qui gère la partie
+ *  Objets
  *  
 *****************************************************/
-
 
 /**
  * Objet partie qui gère les joueurs / score / plateau
  * @param {JoueurPartie} JoueurMe  Joueur hote
  * @param {JoueurPartie} joueurAdv Joueur adverse
  */
-function Partie(JoueurMe, joueurAdv){
+function Partie(JoueurMe, joueurAdv) {
     this.JoueurMe = JoueurMe;
     this.joueurAdv = joueurAdv;
     this.isTurn = 1;
@@ -67,7 +101,7 @@ function Partie(JoueurMe, joueurAdv){
  * @param {int} score  [[Description]]
  * @param {int} color  [0 : noir, 1 : blanc]
  */
-function JoueurPartie(joueur, score, color){
+function JoueurPartie(joueur, score, color) {
     this.joueur = joueur;
     this.score = score;
     this.color = color;
@@ -82,13 +116,13 @@ function Bille(x, y) {
     this.x = x;
     this.y = y;
     
-    this.equals = function(bille){
+    this.equals = function(bille) {
         return (this.x == bille.x && this.y == bille.y);
     }
-    this.equalsX = function (x){
+    this.equalsX = function (x) {
         return this.x == x;
     }
-    this.equalsY = function (y){
+    this.equalsY = function (y) {
         return this.y == y;
     }
     this.equalsCoordinate = function(x, y){
@@ -224,6 +258,27 @@ function VecteurBille(size, valDefault = null){
     this.copy = function(vecteur){
         for(i = 0; i < this.vecteur.length; i++){
              this.vecteur[i] = vecteur[i];
+        }
+    }
+}
+
+function mouvements(size = 5) {
+    this.coord = new Array(size);
+    this.current = 0;
+
+    this.add = function (x, y) {
+        if (this.current < 6){
+            this.coord[this.current] = new Bille(x, y);
+            this.current++;
+        }
+    }
+    this.addPos = function (pos, x, y) {
+        this.coord[pos] = new Bille(x,y);
+    }
+
+    this.init = function (val = -1) {
+        for (i = 0; i < this.coord.length; i++) {
+            this.coord[i] = new Bille(val, val);
         }
     }
 }
@@ -747,7 +802,7 @@ function intersection(less, more){
  *  Est appeler quand les joueurs sont synchronisés
  * @param {object} json [[Description]]
  */
-function setDebutPartie(json){
+function setDebutPartie(){
     if(partie.JoueurMe.color == 1){
         partie.isTurn = -1;
     }
@@ -842,7 +897,7 @@ function setMouvementBille(json, isMe = false){
         setBilleImage(row[determineColDOM(json.ori_x2,json.ori_y2)], "empty");
     }
     if(json.ori_x3 != -1){
-        partie.plateau.terrain[json.ori_x3][json.ori_y3] = 0;
+         partie.plateau.terrain[json.ori_x3][json.ori_y3] = 0;
         row = plat[json.ori_x3].children;
         setBilleImage(row[determineColDOM(json.ori_x3,json.ori_y3)], "empty");
     }
@@ -865,7 +920,6 @@ function setMouvementBille(json, isMe = false){
         setBilleImage(row[determineColDOM(json.des_x3,json.des_y3)], "", color);
     }
     
-   
    	if(!isMe){
    		color = partie.JoueurMe.color;
    	}else{
@@ -907,40 +961,37 @@ function determineColDOM(x, y){
 /**
  * Affiche le message d'indication pour savoir le tour.
  */
-function showTurn(){
-    if(partie.isTurn > 0){
+function showTurn() {
+    if(partie.isTurn > 0) {
         $id('whoPlayed').children[0].innerHTML = "A vous de jouer !";
         $id('whoPlayed').children[0].style.color = "#21a637";
-    } else{
+    } else {
         $id('whoPlayed').children[0].innerHTML = "Votre adversaire joue !";
         $id('whoPlayed').children[0].style.color = "#D9534F";
     }
 }
 
-/**
- * Affiche le score à l'écran.
- * @param {object} json [[Description]]
- */
-function setScore(json){
-    if(partie.JoueurMe.color == 0){
-        partie.JoueurMe.score = json.pNoir;
-        partie.joueurAdv.score = json.pBlanc;
+
+function setScore(pNoir, pBlanc) {
+    if(partie.JoueurMe.color == 0) {
+        partie.JoueurMe.score = pNoir;
+        partie.joueurAdv.score = pBlanc;
         
-        $id('scoreP1').innerHTML = json.pNoir;
-        $id('scoreP2').innerHTML = json.pBlanc;
-    } else{
-        partie.JoueurMe.score = json.pBlanc;
-        partie.joueurAdv.score = json.pNoir;
+        $id('scoreP1').innerHTML = pNoir;
+        $id('scoreP2').innerHTML = pBlanc;
+    } else {
+        partie.JoueurMe.score = pBlanc;
+        partie.joueurAdv.score = pNoir;
         
-        $id('scoreP1').innerHTML = json.pBlanc;
-        $id('scoreP2').innerHTML = json.pNoir;
+        $id('scoreP1').innerHTML = pBlanc;
+        $id('scoreP2').innerHTML = pNoir;
     }
 }
 
 /**
  * Cache toute l'interface sauf la barre du header
  */
-function hideAll(){
+function hideAll() {
     hide('syncPartie');
     hide('whoPlayed');
     hide('backgroundPlateau');
@@ -956,20 +1007,20 @@ function hideAll(){
  * @param {string} type        [[Description]]
  * @param {int} isColor = -1 [[Description]]
  */
-function setBilleImage(bille, type, color = -1){
-    if(color != -1){
-        if(type != ""){
-             bille.style.backgroundImage="url(ressources/style/img/billes/bille_"+getNameColor(color)+"_"+type+".png)";
-        } else{
-            bille.style.backgroundImage="url(ressources/style/img/billes/bille_"+getNameColor(color)+".png)";
+function setBilleImage(bille, type, color = -1) {
+    if(color != -1) {
+        if(type != "") {
+            bille.style.backgroundImage = "url("+ressource+"style/img/billes/bille_"+getNameColor(color)+"_"+type+".png)";
+        } else {
+            bille.style.backgroundImage = "url(" + ressource +"/style/img/billes/bille_"+getNameColor(color)+".png)";
         }
        
-    } else{
-         bille.style.backgroundImage = "url(ressources/style/img/bille_"+type+".png)";
+    } else {
+        bille.style.backgroundImage = "url(" + ressource +"/style/img/bille_"+type+".png)";
     }
 }
 
-function setUnauthorized(){
+function setUnauthorized() {
 	 $('#noAuthorized').modal('show');
 }
 
@@ -979,105 +1030,31 @@ function setUnauthorized(){
  *  
 *****************************************************/
 
-
-/**
- * Gère les messages que le serveur m'envoit
- * @param {object} event Json reçu par le socket
- */
-function onMessagePartie(event) {
-    var json = JSON.parse(event.data);
-    
-    switch(json.action){
-        case "pret":{      //Synchronisaiton terminée
-            setDebutPartie(json);
-            break;
-        }
-        case "allowed":{    //Mouvement autorisé
-            setMouvementBille(json, true);
-            setScore(json);
-            break;
-        }    
-        case "unallowed":{  //Mouvement pas autorisé
-        	inversionMatrice();
-        	partie.plateau.billeMove.init();   
-        	resetBilleSelected();
-        	setUnauthorized();
-        	break;
-        } 
-        case "move":{  //Mouvement de l'adversaire
-            setMouvementBille(json);
-            setScore(json);
-            break;
-        }
-        case "surrend":{    //Abandon de l'adversaire
-            setFinPartie(true, true);
-            break;
-        }
-        case "timeout":{    //L'adversaire à quitter violament 
-            setFinPartie(true, true);
-            break;
-        }  
-        case "beginTurn":{
-        	partie.nextTurn();
-        	break;
-        }
-        case "victoire":{    //Victoire
-            //Vérifie si je suis la couleur gagnante.
-            if(json.gagnant ==  partie.JoueurMe.color){
-                setFinPartie(true, false);
-            }else{
-                 setFinPartie(false, false);
-            }
-            break;
-        }
-    }
-}
-
-function sendNextTurn(){
-    var json = {
-        action: "finTour"
-    };
-    partieSocket.send(JSON.stringify(json));
+function sendNextTurn() {
+    joueurSocket.server.finTour();
 }
 
 /**
  * Le joueur a abandonné
  */
-function sendForfait(){
-    var json = {
-        action: "forfait"
-    };
-    partieSocket.send(JSON.stringify(json));
+function sendForfait() {
+    joueurSocket.server.forfait();
 }
 
 /**
  * Envois la demande de mouvement au serveur.
  */
-function sendMouvement(){
+function sendMouvement() {
     inversionMatrice();
-    var json = {
-        action: "move",   
-        ori_x1 : sendMouvementFormate(partie.plateau.billeSelected.vecteur[0],0),
-        ori_y1 : sendMouvementFormate(partie.plateau.billeSelected.vecteur[0],1),
-        des_x1 : sendMouvementFormate(partie.plateau.billeMove.vecteur[0],0),
-        des_y1 : sendMouvementFormate(partie.plateau.billeMove.vecteur[0],1),
-        ori_x2 : sendMouvementFormate(partie.plateau.billeSelected.vecteur[1],0),
-        ori_y2 : sendMouvementFormate(partie.plateau.billeSelected.vecteur[1],1),
-        des_x2 : sendMouvementFormate(partie.plateau.billeMove.vecteur[1],0),
-        des_y2 : sendMouvementFormate(partie.plateau.billeMove.vecteur[1],1),
-        ori_x3 : sendMouvementFormate(partie.plateau.billeSelected.vecteur[2],0),
-        ori_y3 : sendMouvementFormate(partie.plateau.billeSelected.vecteur[2],1),
-        des_x3 : sendMouvementFormate(partie.plateau.billeMove.vecteur[2],0),
-        des_y3 : sendMouvementFormate(partie.plateau.billeMove.vecteur[2],1),
-        des_x4 : -1,
-        des_y4 : -1,
-        des_x5 : -1,
-        des_y5 : -1
-    };
-    partieSocket.send(JSON.stringify(json));
+    var mov = mouvements(7);
+    mov.init();
+    for (var i = 0; i < 5; i++) {
+        mov.addPos(i, partie.plateau.billeSelected.vecteur[0].x, partie.plateau.billeSelected.vecteur[0].y);
+    }
+    joueurSocket.server.move(JSON.stringify(json));
 }
 
-function sendMouvementFormate(vecteur, coord){
+function sendMouvementFormate(vecteur, coord) {
     res = -1
     if(vecteur != null){
         if(coord == 0){ //x
@@ -1092,26 +1069,18 @@ function sendMouvementFormate(vecteur, coord){
 /**
  * J'ai bien reçu les informations et je passe la main à l'adversaire.
  */
-function sendFinTour(){
-    var json = {
-        action: "finTour"
-    };
-    partieSocket.send(JSON.stringify(json));
+function sendFinTour() {
+    joueurSocket.server.finTour();
 }
 
-function sendPartiePlayer(){
-    var json = {
-            action: "add",
-            uid : partie.JoueurMe.joueur.id,
-            couleur : partie.JoueurMe.color
-      };
-      partieSocket.send(JSON.stringify(json));
+function sendPartiePlayer() {
+    joueurSocket.server.add(partie.JoueurMe.joueur.id, partie.JoueurMe.color);
 }
 
 
-function inversionMatrice(json = null){
+function inversionMatrice(mouv) {
     if(partie.JoueurMe.color == 1){ //si je suis blanc, je dois inverser les lignes et col
-        if(json == null){
+        if (mouv == null){
            for(i=0; i < partie.plateau.billeSelected.current; i++){
                 if(partie.plateau.billeSelected.vecteur[i].x > -1){
                     partie.plateau.billeSelected.vecteur[i].x = 8 - partie.plateau.billeSelected.vecteur[i].x;
@@ -1124,39 +1093,14 @@ function inversionMatrice(json = null){
                     partie.plateau.billeMove.vecteur[i].y = 16 - partie.plateau.billeMove.vecteur[i].y;
                 }
             } 
-        } else{
-            if(json.ori_x1 > -1){
-                json.ori_x1 = 8 -  json.ori_x1;
-                json.ori_y1 = 16 -  json.ori_y1;
+        } else {
+            var i;
+            for (i = 0; i < mouv.coord.length; i++){
+                if (mouv.coord[i].x > -1) {
+                    mouv.coord[i].x = 8 - mouv.coord[i].x;
+                    mouv.coord[i].y = 16 - mouv.coord[i].y;
+                }
             }
-            if(json.ori_x2 > -1){
-                json.ori_x2 = 8 -  json.ori_x2;
-                json.ori_y2 = 16 -  json.ori_y2;
-            }
-            if(json.ori_x3 > -1){
-                json.ori_x3 = 8 -  json.ori_x3;
-                 json.ori_y3 = 16 -  json.ori_y3;
-            }
-            if(json.des_x1 > -1){
-                json.des_x1 = 8 -  json.des_x1;
-                json.des_y1 = 16 -  json.des_y1;
-            }
-           if(json.des_x2 > -1){
-                 json.des_x2 = 8 -  json.des_x2;
-                 json.des_y2 = 16 -  json.des_y2;
-            }
-           if(json.des_x3 > -1){
-                 json.des_x3 = 8 -  json.des_x3;
-                 json.des_y3 = 16 -  json.des_y3;
-            }
-           if(json.des_x4 > -1){
-                json.des_x4 = 8 -  json.des_x4;
-                 json.des_y4 = 16 -  json.des_y4;
-            }
-            if(json.des_x5 > -1){
-                json.des_x5 = 8 -  json.des_x5;
-                json.des_y5 = 16 -  json.des_y5;
-            }   
         }
     }
 }

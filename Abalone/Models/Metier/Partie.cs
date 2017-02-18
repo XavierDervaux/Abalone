@@ -85,14 +85,23 @@ namespace Abalone.Models {
 		    }
 		    listParties.Remove(this); //The End
 	    }
-	
-	    public static Partie TrouverPartie(Joueur joueur1, Joueur joueur2) {
+
+        public static Partie TrouverPartie(Joueur joueur1, Joueur joueur2) {
 		    Partie res = null;
 		
 		    foreach(Partie tmp in listParties){
-			    if( (tmp.noir.Equals(joueur1) && tmp.blanc.Equals(joueur2))   ||   (tmp.noir.Equals(joueur2) && tmp.blanc.Equals(joueur1)) ){
+                /*if((tmp.noir.Equals(joueur1) && tmp.blanc.Equals(joueur2)) ||   
+                    (tmp.noir.Equals(joueur2) && tmp.blanc.Equals(joueur1))){
 				    res = tmp; break;//On ne maitrise pas l'ordre des joueurs, il faut donc vérifier les deux possibilités d'ordre.
-			    }
+			    }*/
+                if (tmp.noir.Equals(joueur1) && tmp.blanc.Equals(joueur2))
+                {
+                    res = tmp; break;
+                } 
+                else if (tmp.noir.Equals(joueur2) && tmp.blanc.Equals(joueur1))
+                {
+                    res = tmp; break;
+                }
 		    }
 		    return res;
 	    }

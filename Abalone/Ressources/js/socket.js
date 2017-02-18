@@ -31,12 +31,12 @@ var player_invitation;
                getDejaConnect(joueur_pseudo);
             };
 
-            $.connection.hub.start().done(function (){ //Entame la connexion
+            $.connection.hub.start().done(function () { //Entame la connexion
                 sendJoueur(player_current);
             });
 
             $('#invitation').on('hide.bs.modal', function (e) {
-                if(player_invitation != null){
+                if(player_invitation != null) {
                     sendResponse(player_invitation, false);
                     player_invitation = null;
                 }
@@ -47,48 +47,51 @@ var player_invitation;
         }
     }
 
+    // Objets JS
+    //----------------------------------------------
+
     function MatchMaking(){
         this.joueurs= [];
 
         this.addJoueur = function (joueur) {
-            if (this.joueurs[this.joueurs.length - 1] == null && (this.joueurs.length - 1) > -1){
+            if (this.joueurs[this.joueurs.length - 1] == null && (this.joueurs.length - 1) > -1) {
     		    this.joueurs[this.joueurs.length-1] = joueur;
-    	    } else{
+    	    } else {
     		    this.joueurs.push(joueur);
     	        this.joueurs.sort();
     	    }
             this.refresh();
         }
 
-        this.removeJoueur = function(joueur){
+        this.removeJoueur = function(joueur) {
             var i = 0, trouver = false;
         
-            while(i < this.joueurs.length && !trouver){
-                if(joueur.id == this.joueurs[i].id){
+            while(i < this.joueurs.length && !trouver) {
+                if(joueur.id == this.joueurs[i].id) {
                     trouver = true;
                 }
                 i++;
             }
         
-            if(trouver){
+            if(trouver) {
                 this.joueurs[i-1] = null;
                 this.joueurs.sort();
                 this.refresh(); 
             }
         }
  
-        this.refresh = function(){
+        this.refresh = function() {
             genereTableJoueur(this.joueurs);
         }
     }
 
-    function Joueur(id, pseudo, email){
+    function Joueur(id, pseudo, email) {
         this.id = id;
         this.pseudo = pseudo;
         this.email = email;
     }
 
-    function genereTableJoueur(joueurs){
+    function genereTableJoueur(joueurs) {
         var table = $id('listJoueur');
         var title = table.firstChild;
     
@@ -103,11 +106,11 @@ var player_invitation;
    
         trHEader.appendChild(th);
         table.appendChild(trHEader);
-        for(var i = 0; i < joueurs.length; i++){
+        for(var i = 0; i < joueurs.length; i++) {
            if(joueurs[i] != null){
     	   
     	       item = joueurs[i];
-    	       if(item.email != player_current.email){
+    	       if(item.email != player_current.email) { //Si le joueur à afficher n'est pas moi.
                    //Genetation du tableau
                     var tr = document.createElement("tr");
                     var tdPseudo = document.createElement("td");
@@ -138,6 +141,9 @@ var player_invitation;
        }
     }
 
+    // Fonctions
+    //----------------------------------------------
+
     function onClickNotification(button, item){
 	    button.onclick = function(){
 		    sendInvitation(item);
@@ -152,6 +158,13 @@ var player_invitation;
     
     }
 
+    function getDejaConnect(json) {
+        $('#doubleUser').modal('show');
+    }
+
+    // Réponse Serveur
+    //----------------------------------------------
+
     function respondInvitation(respond){
        if(player_invitation != null){
 	       tmp= player_invitation;
@@ -159,7 +172,7 @@ var player_invitation;
             $('#invitation').modal('hide');
         
             if(respond){
-       		    sendRequestPost(tmp.email_source);
+                sendRequestPost(tmp.email);
        	    }
             player_invitation = null;
        }
@@ -175,7 +188,7 @@ var player_invitation;
         if(confirm == true){
             $id('respondMessageInvitation').innerHTML = joueur_pseudo + " a accepté votre invitation, lancement de la partie...";
             $('#respondInvitation').modal('show');
-            //request post à faire
+
             sendRequestPost(joueur_email);
             player_invitation = null;
         } else{
@@ -184,9 +197,8 @@ var player_invitation;
         }
     }
 
-    function getDejaConnect(json){
-	    $('#doubleUser').modal('show');  
-    }
+    // Envois serveur
+    //----------------------------------------------
 
     function sendRequestPost(email){
 	    request = {

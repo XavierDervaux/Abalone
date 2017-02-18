@@ -182,7 +182,7 @@ function validatePageWithExtension(page){
 }
 
 function nomFichier (){
-     var CheminComplet = document.location.href;
+    var CheminComplet = document.location.href;
     return  NomDuFichier = CheminComplet.substring(CheminComplet.lastIndexOf( "/" )+1 );
 }
 
