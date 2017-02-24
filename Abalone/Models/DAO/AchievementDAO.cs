@@ -7,11 +7,11 @@ namespace Abalone.Models {
     public class AchievementDAO : DAO<Achievement>{
 	    public AchievementDAO(SqlConnection conn) : base(conn){ }
 	
-	    public override bool Create(Achievement obj){ return false; }
+	    public override bool Create(Achievement obj) => false;
 
-        public override bool Delete(Achievement obj){ return false; }
+        public override bool Delete(Achievement obj) => false;
 
-        public override bool Update(Achievement obj){ return false; }
+        public override bool Update(Achievement obj) => false;
 
         public override Achievement Find(int id){
 		    Achievement res = null;

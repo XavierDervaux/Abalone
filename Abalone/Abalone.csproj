@@ -168,8 +168,6 @@
     <Compile Include="Models\Metier\Historique.cs" />
     <Compile Include="Models\Metier\Joueur.cs" />
     <Compile Include="Models\Metier\Partie.cs" />
-    <Compile Include="Models\WebSockets\PartieHandler.cs" />
-    <Compile Include="Models\WebSockets\PartieWebSocketController.cs" />
     <Content Include="Ressources\fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Ressources\js\abalone.js" />
     <Content Include="Ressources\js\bootstrap.min.js" />

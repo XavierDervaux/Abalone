@@ -1,4 +1,5 @@
 ﻿using Abalone.Models;
+using Abalone.Models.Metier;
 using System;
 using System.Web.Mvc;
 
@@ -38,7 +39,7 @@ namespace Abalone.Controllers
 
                         if (nbrJ1 >= nbrJ2) { play = new Partie(joueur1, joueur2); } //On décide aléatoirement qui sera blanc et qui sera noir
                         else { play = new Partie(joueur2, joueur1); }
-                        Partie.listParties.Add(play);
+                        Partie.ListParties.Add(play);
                     }
                     ViewData["joueur"] = ((Joueur)Session["joueur"]);
                     ViewData["id_partie"] = play.Uid;

@@ -9,25 +9,36 @@ function initPartie(uid, pseudoJNoir, emailJNoir, pseudoJBlanc, emailJBlanc, ema
         joueurSocket.client.pret = function () {
             setDebutPartie();
         };
-        joueurSocket.client.move = function (mov) {
-            alert(mov);
-            setMouvementBille(json);
-            setScore(json);
+        joueurSocket.client.move = function (sNoir, sBlanc, mov) {
+            var origin = new Mouvements();
+            var destination = new Mouvements();
+            origin.init();
+            destination.init();    
+
+            mouvementToClient(mov, origin, destination);
+            setMouvementBille(origin, destination);
+            setScore(sNoir, sBlanc);
         };
         joueurSocket.client.allowed = function (sNoir, sBlanc, mov) {
-            setMouvementBille(json, true);
+            var origin = new Mouvements();
+            var destination = new Mouvements();
+            origin.init();
+            destination.init();
+
+            mouvementToClient(mov, origin, destination);
+            setMouvementBille(origin, destination, true);
             setScore(sNoir, sBlanc);
         };
         joueurSocket.client.unallowed = function () {
             inversionMatrice();
             partie.plateau.billeMove.init();
             resetBilleSelected();
-            setUnauthorized();
+            setUnauthorized(); 
         };
         joueurSocket.client.surrend= function () {  //Abandon de l'adversaire
             setFinPartie(true, true);
         };
-        joueurSocket.client.timeout = function () { //L'adversaire à quitter violament 
+        joueurSocket.client.timeout = function () { //L'adversaire Ã  quitter violament 
             setFinPartie(true, true);
         };
         joueurSocket.client.beginTurn = function () { //Changement de tour
@@ -68,15 +79,11 @@ function initInterface(uid, pseudoJNoir,emailJNoir, pseudoJBlanc,emailJBlanc, em
 
 
 /*****************************************************
- *
- *  Objets
- *  
+ *  Objets  
 *****************************************************/
 
 /**
- * Objet partie qui gère les joueurs / score / plateau
- * @param {JoueurPartie} JoueurMe  Joueur hote
- * @param {JoueurPartie} joueurAdv Joueur adverse
+ * Objet partie qui gÃ©re les joueurs / score / plateau
  */
 function Partie(JoueurMe, joueurAdv) {
     this.JoueurMe = JoueurMe;
@@ -96,10 +103,7 @@ function Partie(JoueurMe, joueurAdv) {
 }
 
 /**
- * [[Description]]
- * @param {Joueur} joueur [[Description]]
- * @param {int} score  [[Description]]
- * @param {int} color  [0 : noir, 1 : blanc]
+ * Objet Joueur
  */
 function JoueurPartie(joueur, score, color) {
     this.joueur = joueur;
@@ -109,8 +113,6 @@ function JoueurPartie(joueur, score, color) {
 
 /**
  * Objet Bille
- * @param   {int} x [[Description]]
- * @param   {int} y [[Description]]
  */
 function Bille(x, y) {
     this.x = x;
@@ -131,7 +133,7 @@ function Bille(x, y) {
 }
 
 /**
- * Object Plateay qui gère la position des billes et les dèplacements.
+ * Object Plateay qui gÃ©re la position des billes et les dÃ©placements.
  */
 function Plateau(){
     this.terrain = new Array(9);
@@ -214,7 +216,7 @@ function VecteurBille(size, valDefault = null){
     this.valDefault = valDefault;
     
     
-    //Initialise le vecteur, -1 par défaut
+    //Initialise le vecteur, -1 par dï¿½faut
     this.init= function(){
         for(i = 0; i < this.vecteur.length; i++){
             this.vecteur[i] =  this.valDefault;
@@ -227,7 +229,7 @@ function VecteurBille(size, valDefault = null){
        return this.current == 0;
     }
     
-    //Ajoute la bille selectionnée au vecteur
+    //Ajoute la bille selectionnï¿½e au vecteur
     this.addBille = function(x, y){
         if(this.current < this.vecteur.length){
             this.vecteur[this.current] = new Bille(x,y);
@@ -235,7 +237,7 @@ function VecteurBille(size, valDefault = null){
         }
     }
     
-    //Retire la bille demandé du vecteur
+    //Retire la bille demandï¿½ du vecteur
     this.removebille = function(x,y){
         var i=0, trouver = false;
         while(i < this.vecteur.length && !trouver){
@@ -247,7 +249,7 @@ function VecteurBille(size, valDefault = null){
             i++;
         }
         if(trouver){
-            //On indique la valeur par défault
+            //On indique la valeur par dï¿½fault
             this.vecteur[i-1] = valDefault;
             this.current--;
             //On trie le tableau.
@@ -262,12 +264,13 @@ function VecteurBille(size, valDefault = null){
     }
 }
 
-function mouvements(size = 5) {
+function Mouvements(size = 5) {
     this.coord = new Array(size);
     this.current = 0;
+    this.length = size;
 
     this.add = function (x, y) {
-        if (this.current < 6){
+        if (this.current < this.length){
             this.coord[this.current] = new Bille(x, y);
             this.current++;
         }
@@ -281,6 +284,12 @@ function mouvements(size = 5) {
             this.coord[i] = new Bille(val, val);
         }
     }
+
+    this.move = function (vect, born, valX, valY){
+        for (i = 0; i < born; i++) {
+            this.coord[i].X = vect[i].x;
+        }
+    }
 }
 
 function redirectionMenu(){
@@ -289,19 +298,16 @@ function redirectionMenu(){
 
 /**
  * Intervient quand je clique sur une bille
- * @param {span}   bille [[Description]]
- * @param {int} x     [[Description]]
- * @param {int} y     [[Description]]
  */
 function clickBille(bille, x, y){
     if(partie.isTurn > 0){ //Si c'est mon tour
         if(partie.plateau.billeSelected.isEmptyBilleSelected()){ //si pas de bille de selectionner
-            if(partie.plateau.terrain[x][y] == 1){ //Je selectionne UNE bille à moi
+            if(partie.plateau.terrain[x][y] == 1){ //Je selectionne UNE bille Ã  moi
                 updateBille(bille, x, y, true);
             }
-        } else{ //si j'ai une bille de selectionnée
+        } else{ //si j'ai une bille de selectionnÃ©e
             if(partie.plateau.terrain[x][y] == 2){  //si je clique dessus, je la retire 
-                //Si j'ai 3 billes de selectionné, je vérifie que la bille qu'on veut pas
+                //Si j'ai 3 billes de selectionnÃ©, je vÃ©rifie que la bille qu'on veut pas
                 //retirer est la bille du milieu
                 if(partie.plateau.billeSelected.current == 3){ 
                     if(!isBilleMiddle(x,y)){
@@ -310,11 +316,11 @@ function clickBille(bille, x, y){
                 } else{
                     updateBille(bille, x, y, false);
                 }
-            } else if(partie.plateau.terrain[x][y] == 1){ //je clique sur une bille quelconque à moi.
+            } else if(partie.plateau.terrain[x][y] == 1){ //je clique sur une bille quelconque Ã  moi.
                 if(isSelectBille(x, y)){
                      updateBille(bille, x, y, true);
                 }
-            } else if(partie.plateau.terrain[x][y] < 1){ //je veux me déplacer
+            } else if(partie.plateau.terrain[x][y] < 1){ //je veux me dÃ©placer
                    if(checkMouvement(x, y)){ //J'ai l'autorisation
                        //J'envois la demande au serveur
                        sendMouvement();
@@ -326,15 +332,12 @@ function clickBille(bille, x, y){
 
 /**
  * Intervient quand je survole une bille
- * @param {span}   bille [[Description]]
- * @param {int} x     [[Description]]
- * @param {int} y     [[Description]]
  */
 function survolBille(bille, x, y){
     if(partie.isTurn  > 0){ //Si c'est mon tour
         if(partie.plateau.terrain[x][y] == 0){ //Aucune bille
             setBilleImage(bille, "hover");
-        } else if(partie.plateau.terrain[x][y] == 1){ //Bille à moi
+        } else if(partie.plateau.terrain[x][y] == 1){ //Bille ï¿½ moi
             setBilleImage(bille, "hover",partie.JoueurMe.color);
         }
     } 
@@ -342,15 +345,12 @@ function survolBille(bille, x, y){
 
 /**
  * Intervient quand je ne survole plus une bille
- * @param {span}   bille [[Description]]
- * @param {int} x     [[Description]]
- * @param {int} y     [[Description]]
  */
 function unsurvolBille(bille, x, y){
    if(partie.isTurn > 0){ //Si c'est mon tour
         if(partie.plateau.terrain[x][y] == 0){ //Aucune bille
             setBilleImage(bille, "empty");
-        } else if(partie.plateau.terrain[x][y] == 1){ //Bille à moi
+        } else if(partie.plateau.terrain[x][y] == 1){ //Bille ï¿½ moi
             setBilleImage(bille,"",partie.JoueurMe.color);
         }    
    }
@@ -371,7 +371,7 @@ function resetBilleSelected(){
 
 
 /**
- * Fonction qui est appelée quand un le joueur clique
+ * Fonction qui est appelÃ©e quand un le joueur clique
  * sur le bouton abandonner
  */
 function setAbandonner(){
@@ -385,11 +385,7 @@ function getNameColor(color){
 }
 
 /**
- * [[Description]]
- * @param {Bille} bille      [[Description]]
- * @param {int} x          [[Description]]
- * @param {int} y          [[Description]]
- * @param {boolean} isSelected [[Description]]
+ * Met Ã  jour une bille
  */
 function updateBille(bille, x, y, isSelected){
     if(isSelected){
@@ -404,11 +400,7 @@ function updateBille(bille, x, y, isSelected){
 }
 
 /**
- * Vérifie si la bille est confirme au règle du jeu
- * @param   {Bille} bille Objet HTML
- * @param   {int} x    Coordonée X de la bille 
- * @param   {int} y    Coordonée Y de la bille 
- * @returns {boolean}  [[Description]]
+ * VÃ©rifie si la bille est confirme au rÃ¨gle du jeu
  */
 function isSelectBille(x, y){
     var nbr = partie.plateau.billeSelected.current;
@@ -417,40 +409,23 @@ function isSelectBille(x, y){
         if(bille.equalsCoordinate(x, y+2)){
             return true;
         } 
-        if(bille.equalsCoordinate(x, y-2)){
-            return true;
-        }
-        if(bille.equalsCoordinate(x+1, y)){
-            return true;
-        }
-        if(bille.equalsCoordinate(x-1, y)){
-            return true;
-        }
-        if(bille.equalsCoordinate(x+1, y-1)){
-            return true;
-        }
-        if(bille.equalsCoordinate(x+1, y+1)){
-            return true;
-        }
-        if(bille.equalsCoordinate(x-1, y-1)){
-            return true;
-        }
-        if(bille.equalsCoordinate(x-1, y+1)){
+        if(bille.equalsCoordinate(x, y-2) || bille.equalsCoordinate(x+1, y) || bille.equalsCoordinate(x-1, y) || bille.equalsCoordinate(x+1, y-1) || 
+            bille.equalsCoordinate(x+1, y+1) || bille.equalsCoordinate(x-1, y-1) || bille.equalsCoordinate(x-1, y+1)){
             return true;
         }
     } else if(nbr == 2){
         var bille1 = partie.plateau.billeSelected.vecteur[0];
         var bille2 = partie.plateau.billeSelected.vecteur[1];
-        if(bille1.equalsX(bille2.x)){ //je suis sur la même ligne
-            if(bille1.equalsCoordinate(x,y+2) || bille1.equalsCoordinate(x,y-2) || bille2.equalsCoordinate(x,y+2) || bille2.equalsCoordinate(x,y-2)){ //si je suis à gauche ou à droite
+        if(bille1.equalsX(bille2.x)){ //je suis sur la mÃªme ligne
+            if(bille1.equalsCoordinate(x,y+2) || bille1.equalsCoordinate(x,y-2) || bille2.equalsCoordinate(x,y+2) || bille2.equalsCoordinate(x,y-2)){ //si je suis ï¿½ gauche ou ï¿½ droite
                 return true;
             }
-        }else if(bille1.equalsCoordinate(bille2.x-1, bille2.y+1) || bille1.equalsCoordinate(bille2.x+1, bille2.y-1)){ //Je suis à la verticale vers la gauche
+        }else if(bille1.equalsCoordinate(bille2.x-1, bille2.y+1) || bille1.equalsCoordinate(bille2.x+1, bille2.y-1)){ //Je suis ï¿½ la verticale vers la gauche
             if(bille1.equalsCoordinate(x-1, y+1) || bille1.equalsCoordinate(x+1, y-1) || bille2.equalsCoordinate(x-1, y+1) || bille2.equalsCoordinate(x+1, y-1) ){
                 return true;
             }
             
-        } else if(bille1.equalsCoordinate(bille2.x+1, bille2.y+1) || bille1.equalsCoordinate(bille2.x-1, bille2.y-1)){ //Je suis à la verticale vers la droite
+        } else if(bille1.equalsCoordinate(bille2.x+1, bille2.y+1) || bille1.equalsCoordinate(bille2.x-1, bille2.y-1)){ //Je suis ï¿½ la verticale vers la droite
             if(bille1.equalsCoordinate(x+1, y+1) || bille1.equalsCoordinate(x-1, y-1) || bille2.equalsCoordinate(x+1, y+1) || bille2.equalsCoordinate(x-1, y-1)){
                 return true;
             }
@@ -460,20 +435,17 @@ function isSelectBille(x, y){
 }
 
 /**
- * [[Description]]
- * @param   {int} x [[Description]]
- * @param   {int} y [[Description]]
- * @returns {boolean}  [[Description]]
+ * VÃ©rifie si le mouvement est autorisÃ©
  */
 function checkMouvement(x, y){
     var nbr = partie.plateau.billeSelected.current;
     var vecteur = partie.plateau.billeSelected.vecteur;
-    if( nbr == 1){ //J'ai une bille à déplacer
+    if( nbr == 1){ //J'ai une bille ï¿½ dï¿½placer
         if(isSelectBille(x,y)){
             partie.plateau.billeMove.addBille(x,y);
             return true;
         }
-    } else if(nbr == 2){  //Si j'ai deux billes à déplacer
+    } else if(nbr == 2){  //Si j'ai deux billes ï¿½ dï¿½placer
         var middle = billeLeft();
          if(isVerticalRight()){ 
            if(isNeighbourVerticalRight(vecteur[0],x,y) || isNeighbourVerticalRight(vecteur[1],x,y)){
@@ -485,7 +457,7 @@ function checkMouvement(x, y){
                     partie.plateau.billeMove.addBille(vecteur[1].x+1, vecteur[1].y-1);
                  } 
                return true;
-            } else if(middle.equalsY(y+2) || middle.equalsY(y-2)){//je me déplace à gauche ou à droite
+            } else if(middle.equalsY(y+2) || middle.equalsY(y-2)){//je me dÃ©place Ã  gauche ou Ã  droite
                 if(middle.equalsCoordinate(x,y-2) && isNeighbourLeftOrRight(vecteur, true) == 2){
                     partie.plateau.billeMove.addBille(vecteur[0].x, vecteur[0].y+2);
                     partie.plateau.billeMove.addBille(vecteur[1].x, vecteur[1].y+2);
@@ -506,7 +478,7 @@ function checkMouvement(x, y){
                     partie.plateau.billeMove.addBille(vecteur[1].x+1, vecteur[1].y+1);
                 }
                 return true;
-            } else if(middle.equalsY(y+2) || middle.equalsY(y-2)){//je me déplace à gauche ou à droite
+            } else if(middle.equalsY(y+2) || middle.equalsY(y-2)){//je me dï¿½place ï¿½ gauche ou ï¿½ droite
                 if(middle.equalsCoordinate(x,y-2) && isNeighbourLeftOrRight(vecteur, true) == 2){
                     partie.plateau.billeMove.addBille(vecteur[0].x, vecteur[0].y+2);
                     partie.plateau.billeMove.addBille(vecteur[1].x, vecteur[1].y+2);
@@ -518,33 +490,33 @@ function checkMouvement(x, y){
                 }
             }
          } else{ //Je suis en horizontale
-            if(middle.equalsX(x+1) || middle.equalsX(x-1)){ //Si je me déplace horizontalement
+            if(middle.equalsX(x+1) || middle.equalsX(x-1)){ //Si je me dï¿½place horizontalement
                 var nbr = 0;
                 
-                if(middle.equalsCoordinate(x+1,y+1) && isNeighbourTopOrBottom(vecteur, true) == 2){ //Déplacement vers le haut gauche
+                if(middle.equalsCoordinate(x+1,y+1) && isNeighbourTopOrBottom(vecteur, true) == 2){ //Dï¿½placement vers le haut gauche
                     partie.plateau.billeMove.addBille(vecteur[0].x-1, vecteur[0].y-1);
                     partie.plateau.billeMove.addBille(vecteur[1].x-1, vecteur[1].y-1);
                     
                     return true;
-                } else if(middle.equalsCoordinate(x+1,y-1) && isNeighbourTopOrBottom(vecteur, true, false) == 2){ //Déplacement vers le haut droite
+                } else if(middle.equalsCoordinate(x+1,y-1) && isNeighbourTopOrBottom(vecteur, true, false) == 2){ //Dï¿½placement vers le haut droite
                 	partie.plateau.billeMove.addBille(vecteur[0].x-1, vecteur[0].y+1);
                     partie.plateau.billeMove.addBille(vecteur[1].x-1, vecteur[1].y+1);
                     return true;
-                }  else if(middle.equalsCoordinate(x-1,y-1) && isNeighbourTopOrBottom(vecteur, false) == 2){//Déplacement vers le bas droite
+                }  else if(middle.equalsCoordinate(x-1,y-1) && isNeighbourTopOrBottom(vecteur, false) == 2){//Dï¿½placement vers le bas droite
                     partie.plateau.billeMove.addBille(vecteur[0].x+1, vecteur[0].y+1);
                     partie.plateau.billeMove.addBille(vecteur[1].x+1, vecteur[1].y+1);
                     return true;
-                }  else if(middle.equalsCoordinate(x-1,y+1) && isNeighbourTopOrBottom(vecteur, false, false) == 2){//Déplacement vers le bas gauche
+                }  else if(middle.equalsCoordinate(x-1,y+1) && isNeighbourTopOrBottom(vecteur, false, false) == 2){//Dï¿½placement vers le bas gauche
                     partie.plateau.billeMove.addBille(vecteur[0].x+1, vecteur[0].y-1);
                     partie.plateau.billeMove.addBille(vecteur[1].x+1, vecteur[1].y-1);
                     return true;
                 } 
-            } else if(middle.equalsX(x)){ //déplacement gauche ou droite sur la même ligne
-                if(isNeighbourY(vecteur[0], y) ||isNeighbourY(vecteur[1], y)){ //Elle est voisine à une de mes billes
-                    if(middle.y > y){ //Je me déplace vers ma gauche
+            } else if(middle.equalsX(x)){ //dï¿½placement gauche ou droite sur la mï¿½me ligne
+                if(isNeighbourY(vecteur[0], y) ||isNeighbourY(vecteur[1], y)){ //Elle est voisine ï¿½ une de mes billes
+                    if(middle.y > y){ //Je me dï¿½place vers ma gauche
                         partie.plateau.billeMove.addBille(vecteur[0].x, vecteur[0].y-2);
                         partie.plateau.billeMove.addBille(vecteur[1].x, vecteur[1].y-2);
-                    } else{ //Je me déplace vers ma droite
+                    } else{ //Je me dï¿½place vers ma droite
                         partie.plateau.billeMove.addBille(vecteur[0].x, vecteur[0].y+2);
                         partie.plateau.billeMove.addBille(vecteur[1].x, vecteur[1].y+2);
                     }
@@ -554,7 +526,7 @@ function checkMouvement(x, y){
             }
          }
     } 
-    else if(nbr == 3){ //Si j'ai 3 billes à deplacer
+    else if(nbr == 3){ //Si j'ai 3 billes Ã  deplacer
         var middle = billeMiddle();
         if(isVerticalRight()){  //Je suis en verticale vers la droite
             if(isNeighbourVerticalRight(vecteur[0],x,y) || isNeighbourVerticalRight(vecteur[1],x,y) || isNeighbourVerticalRight(vecteur[2],x,y)){
@@ -568,7 +540,7 @@ function checkMouvement(x, y){
                     partie.plateau.billeMove.addBille(vecteur[2].x+1, vecteur[2].y-1);
                  } 
                 return true;
-             } else if(middle.equalsY(y+2) || middle.equalsY(y-2)){//je me déplace à gauche ou à droite
+             } else if(middle.equalsY(y+2) || middle.equalsY(y-2)){//je me dÃ©place Ã  gauche ou Ã  droite
                 if(middle.equalsCoordinate(x,y-2) && isNeighbourLeftOrRight(vecteur, true) == 3){
                     partie.plateau.billeMove.addBille(vecteur[0].x, vecteur[0].y+2);
                     partie.plateau.billeMove.addBille(vecteur[1].x, vecteur[1].y+2);
@@ -595,7 +567,7 @@ function checkMouvement(x, y){
                     
                 }
                 return true;
-            } else if(middle.equalsY(y+2) || middle.equalsY(y-2)){//je me déplace à gauche ou à droite
+            } else if(middle.equalsY(y+2) || middle.equalsY(y-2)){//je me dÃ©place Ã  gauche ou Ã  droite
                 if(middle.equalsCoordinate(x,y-2) && isNeighbourLeftOrRight(vecteur, true) == 3){
                     partie.plateau.billeMove.addBille(vecteur[0].x, vecteur[0].y+2);
                     partie.plateau.billeMove.addBille(vecteur[1].x, vecteur[1].y+2);
@@ -610,29 +582,29 @@ function checkMouvement(x, y){
                
             }
         } else{ //Je suis en horizontale
-            if(middle.equalsX(x+1) || middle.equalsX(x-1)){ //Si je me déplace horizontalement
+            if(middle.equalsX(x+1) || middle.equalsX(x-1)){ //Si je me dÃ©place horizontalement
                 var nbr = 0;
                 
-                if(middle.equalsCoordinate(x+1,y+1) && isNeighbourTopOrBottom(vecteur, true) == 3){ //Déplacement vers le haut
+                if(middle.equalsCoordinate(x+1,y+1) && isNeighbourTopOrBottom(vecteur, true) == 3){ //DÃ©placement vers le haut
                     partie.plateau.billeMove.addBille(vecteur[0].x-1, vecteur[0].y-1);
                     partie.plateau.billeMove.addBille(vecteur[1].x-1, vecteur[1].y-1);
                     partie.plateau.billeMove.addBille(vecteur[2].x-1, vecteur[2].y-1);
                     
                     return true;
-                } else if(middle.equalsCoordinate(x-1,y-1) && isNeighbourTopOrBottom(vecteur, false) == 3){//Déplacement vers le bas
+                } else if(middle.equalsCoordinate(x-1,y-1) && isNeighbourTopOrBottom(vecteur, false) == 3){//DÃ©placement vers le bas
                     partie.plateau.billeMove.addBille(vecteur[0].x+1, vecteur[0].y+1);
                     partie.plateau.billeMove.addBille(vecteur[1].x+1, vecteur[1].y+1);
                     partie.plateau.billeMove.addBille(vecteur[2].x+1, vecteur[2].y+1);
                     
                     return true;
                 }
-            } else if(middle.equalsX(x)){ //déplacement gauche ou droite sur la même ligne
-                if(isNeighbourY(vecteur[0], y) ||isNeighbourY(vecteur[1], y) || isNeighbourY(vecteur[2], y) ){ //Elle est voisine à une de mes billes
-                    if(middle.y > y){ //Je me déplace vers ma gauche
+            } else if(middle.equalsX(x)){ //dÃ©placement gauche ou droite sur la mÃªme ligne
+                if(isNeighbourY(vecteur[0], y) ||isNeighbourY(vecteur[1], y) || isNeighbourY(vecteur[2], y) ){ //Elle est voisine Ã  une de mes billes
+                    if(middle.y > y){ //Je me dÃ©place vers ma gauche
                         partie.plateau.billeMove.addBille(vecteur[0].x, vecteur[0].y-2);
                         partie.plateau.billeMove.addBille(vecteur[1].x, vecteur[1].y-2);
                         partie.plateau.billeMove.addBille(vecteur[2].x, vecteur[2].y-2);
-                    } else{ //Je me déplace vers ma droite
+                    } else{ //Je me dÃ©place vers ma droite
                         partie.plateau.billeMove.addBille(vecteur[0].x, vecteur[0].y+2);
                         partie.plateau.billeMove.addBille(vecteur[1].x, vecteur[1].y+2);
                         partie.plateau.billeMove.addBille(vecteur[2].x, vecteur[2].y+2);
@@ -652,24 +624,20 @@ function isNeighbourTopOrBottom(vecteur, isTop, isLeft = true){
         if(vecteur[i] != null){
             if(isTop){
             	if(isLeft){
-            		if(partie.plateau.terrain[vecteur[i].x-1][vecteur[i].y-1] == 0){
+            		if(partie.plateau.terrain[vecteur[i].x-1][vecteur[i].y-1] == 0)
                         nbr++;
-                    }
             	} else{
-            		if(partie.plateau.terrain[vecteur[i].x-1][vecteur[i].y+1] == 0){
+            		if(partie.plateau.terrain[vecteur[i].x-1][vecteur[i].y+1] == 0)
                         nbr++;
-                    }
             	}
                 
             } else{
             	if(isLeft){
-            		if(partie.plateau.terrain[vecteur[i].x+1][vecteur[i].y+1] == 0){
+            		if(partie.plateau.terrain[vecteur[i].x+1][vecteur[i].y+1] == 0)
                         nbr++;
-                    }
             	} else{
-            		if(partie.plateau.terrain[vecteur[i].x+1][vecteur[i].y-1] == 0){
+            		if(partie.plateau.terrain[vecteur[i].x+1][vecteur[i].y-1] == 0)
                         nbr++;
-                    }
             	}
             }
 
@@ -714,7 +682,6 @@ function isBilleMiddle (x,y){
 
 /**
  * Retourne vrai si les deux billes indique un mouvement vertical vers la gauche
- * @returns {boolean} [[Description]]
  */
 function isVerticalRight(){
     var bille1 = partie.plateau.billeSelected.vecteur[0];
@@ -725,7 +692,6 @@ function isVerticalRight(){
 
 /**
  * Retourne vrai si les deux billes indique un mouvement vertical vers la droite
- * @returns {[[Type]]} [[Description]]
  */
 function isVerticalLeft(){
     var bille1 = partie.plateau.billeSelected.vecteur[0];
@@ -750,9 +716,6 @@ function billeLeft(){
 
 /**
  * Retourne la bille du milieu
- * @param   {int} x [[Description]]
- * @param   {int} y [[Description]]
- * @returns {boolean} [[Description]]
  */
 function billeMiddle(){
     var n = partie.plateau.billeSelected.vecteur.length;
@@ -799,8 +762,7 @@ function intersection(less, more){
 *****************************************************/
 
 /**
- *  Est appeler quand les joueurs sont synchronisés
- * @param {object} json [[Description]]
+ *  Est appeler quand les joueurs sont synchronisÃ©s
  */
 function setDebutPartie(){
     if(partie.JoueurMe.color == 1){
@@ -810,7 +772,6 @@ function setDebutPartie(){
     
     $id('nameP1').innerHTML = partie.JoueurMe.joueur.pseudo;
     $id('nameP2').innerHTML = partie.joueurAdv.joueur.pseudo;
-    //setScore(json); 
     
     //On affiche le plateau
     hideAll();
@@ -825,8 +786,6 @@ function setDebutPartie(){
 
 /**
  *  Intervient quand la partie se termine (victoire, defaite ou abandon)
- * @param {boolean} isGagner  [[Description]]
- * @param {boolean} isAbandon [[Description]]
  */
 function setFinPartie(isGagner, isAbandon){
     hideAll();
@@ -845,22 +804,22 @@ function setFinPartie(isGagner, isAbandon){
 }
 
 /**
- *  Fonction qui gère les différents messages de fin de partie
+ *  Fonction qui gÃ©re les diffÃ¨rents messages de fin de partie
  * @param {boolean} isGagner  [[Description]]
  * @param {boolean} isAbandon [[Description]]
  */
 function setMessageFinPartie(isGagner, isAbandon){ 
-    if(isGagner){ //Vous avez gagné
+    if(isGagner){ //Vous avez gagnÃ©
         $id('finPartieTitre').innerHTML="Victoire !";
         if(isAbandon){  //Vous avez gagnez par abandon
-             $id('finPartieMessage').innerHTML="Votre adversaire a abandonné !"; 
+             $id('finPartieMessage').innerHTML="Votre adversaire a abandonnÃ© !"; 
         } else{ //Vous avez gagnez normalement
-             $id('finPartieMessage').innerHTML="Vous avez gagné "+ (partie.JoueurMe.score + 1) + " - " +  partie.joueurAdv.score;
+             $id('finPartieMessage').innerHTML="Vous avez gagnÃ© "+ (partie.JoueurMe.score + 1) + " - " +  partie.joueurAdv.score;
         }
     } else{
          $id('finPartieTitre').innerHTML="Defaite !";
         if(isAbandon){  //Vous avez gagnez par abandon
-             $id('finPartieMessage').innerHTML="Votre avez abandonné !";
+             $id('finPartieMessage').innerHTML="Votre avez abandonnÃ© !";
         } else{ //Vous avez gagnez normalement
              $id('finPartieMessage').innerHTML="Vous avez perdu "+partie.JoueurMe.score + " - " + (partie.joueurAdv.score + 1);
         }
@@ -869,15 +828,14 @@ function setMessageFinPartie(isGagner, isAbandon){
 
 /**
  * Appeler quand le serveur indique un mouvement
- * @param {json} json Json reçu par le serveur
  */
-function setMouvementBille(json, isMe = false){
-    inversionMatrice(json);
+function setMouvementBille(origin, destination, isMe = false){
+    inversionMatrice(origin);
+    inversionMatrice(destination);
     var row, color;
-    //On effecture le mouvement demandé
+    //On effecture le mouvement demandÃ©
     var plat = $id('plateauPartie').children;
     var valeur = 1;
-    var color;
     
     if(isMe){
     	color = partie.JoueurMe.color;
@@ -885,39 +843,21 @@ function setMouvementBille(json, isMe = false){
     	valeur *= -1; 
     	color = partie.joueurAdv.color;
     }
-    
-    if(json.ori_x1 != -1){
-        partie.plateau.terrain[json.ori_x1][json.ori_y1] = 0;
-        row = plat[json.ori_x1].children;
-        setBilleImage(row[determineColDOM(json.ori_x1,json.ori_y1)], "empty");
+
+    for(i=0; i < 5; i++){
+        if(origin.coord[i].x != -1){
+            partie.plateau.terrain[origin.coord[i].x][origin.coord[i].y] = 0;
+            row = plat[origin.coord[i].x].children;
+            setBilleImage(row[determineColDOM(origin.coord[i].x,origin.coord[i].y)], "empty");
+        }
     }
-    if(json.ori_x2 != -1){
-        partie.plateau.terrain[json.ori_x2][json.ori_y2] = 0;
-        row = plat[json.ori_x2].children;
-        setBilleImage(row[determineColDOM(json.ori_x2,json.ori_y2)], "empty");
-    }
-    if(json.ori_x3 != -1){
-         partie.plateau.terrain[json.ori_x3][json.ori_y3] = 0;
-        row = plat[json.ori_x3].children;
-        setBilleImage(row[determineColDOM(json.ori_x3,json.ori_y3)], "empty");
-    }
-    
-   
     //On bouge les billes
-    if(json.des_x1 != -1){
-        partie.plateau.terrain[json.des_x1][json.des_y1] = valeur;
-        row = plat[json.des_x1].children;
-        setBilleImage(row[determineColDOM(json.des_x1,json.des_y1)], "", color);
-    }
-    if(json.des_x2 != -1){
-        partie.plateau.terrain[json.des_x2][json.des_y2] = valeur;
-        row = plat[json.des_x2].children;
-        setBilleImage(row[determineColDOM(json.des_x2,json.des_y2)], "", color);
-    }
-    if(json.des_x3 != -1){
-        partie.plateau.terrain[json.des_x3][json.des_y3] = valeur;
-        row = plat[json.des_x3].children;
-        setBilleImage(row[determineColDOM(json.des_x3,json.des_y3)], "", color);
+    for(i=0; i < 3; i++){
+        if(destination.coord[i].x != -1){
+            partie.plateau.terrain[destination.coord[i].x][destination.coord[i].y] = valeur;
+            row = plat[destination.coord[i].x].children;
+            setBilleImage(row[determineColDOM(destination.coord[i].x,destination.coord[i].y)], "", color);
+        }
     }
     
    	if(!isMe){
@@ -926,19 +866,17 @@ function setMouvementBille(json, isMe = false){
    		color = partie.joueurAdv.color;
    	}
 	valeur *= -1; 
-    if(json.des_x4 != -1){
-        partie.plateau.terrain[json.des_x4][json.des_y4] = valeur;
-        row = plat[json.des_x4].children;
-        setBilleImage(row[determineColDOM(json.des_x4,json.des_y4)], "", color);
-    }
-    if(json.des_x5 != -1){
-        partie.plateau.terrain[json.des_x5][json.des_y5] = valeur;
-        row = plat[json.des_x5].children;
-        setBilleImage(row[determineColDOM(json.des_x5,json.des_y5)], "", color);
+
+    for(i = 3; i < 5; i++){
+        if(destination.coord[i].x != -1){
+            partie.plateau.terrain[destination.coord[i].x][destination.coord[i].y] = valeur;
+            row = plat[destination.coord[i].x].children;
+            setBilleImage(row[determineColDOM(destination.coord[i].x,destination.coord[i].y)], "", color);
+        }
     }
     
     //on vide la selection
-    partie.plateau.billeSelected.init();  //On vide les billes selectionnées.
+    partie.plateau.billeSelected.init();  //On vide les billes selectionnÃ©es.
     partie.plateau.billeMove.init();
     
     if(isMe){
@@ -1003,21 +941,15 @@ function hideAll() {
 
 /**
  * Affiche l'image dans l'objet bille. 
- * @param {object}   bille       [[Description]]
- * @param {string} type        [[Description]]
- * @param {int} isColor = -1 [[Description]]
  */
 function setBilleImage(bille, type, color = -1) {
     if(color != -1) {
-        if(type != "") {
+        if(type != "")
             bille.style.backgroundImage = "url("+ressource+"style/img/billes/bille_"+getNameColor(color)+"_"+type+".png)";
-        } else {
-            bille.style.backgroundImage = "url(" + ressource +"/style/img/billes/bille_"+getNameColor(color)+".png)";
-        }
-       
-    } else {
+        else 
+            bille.style.backgroundImage = "url(" + ressource +"/style/img/billes/bille_"+getNameColor(color)+".png)";    
+    } else 
         bille.style.backgroundImage = "url(" + ressource +"/style/img/bille_"+type+".png)";
-    }
 }
 
 function setUnauthorized() {
@@ -1035,7 +967,7 @@ function sendNextTurn() {
 }
 
 /**
- * Le joueur a abandonné
+ * Le joueur a abandonnÃ©
  */
 function sendForfait() {
     joueurSocket.server.forfait();
@@ -1043,31 +975,33 @@ function sendForfait() {
 
 /**
  * Envois la demande de mouvement au serveur.
- */
+ */ 
 function sendMouvement() {
     inversionMatrice();
-    var mov = mouvements(7);
+    var mov = new Mouvements(6);
     mov.init();
-    for (var i = 0; i < 5; i++) {
-        mov.addPos(i, partie.plateau.billeSelected.vecteur[0].x, partie.plateau.billeSelected.vecteur[0].y);
+    for (i = 0; i < partie.plateau.billeSelected.current; i++) {
+            mov.addPos(i, partie.plateau.billeSelected.vecteur[i].x, partie.plateau.billeSelected.vecteur[i].y);
     }
-    joueurSocket.server.move(JSON.stringify(json));
+    for(i = 0; i < partie.plateau.billeMove.current; i++){
+            mov.addPos(i + 3, partie.plateau.billeMove.vecteur[i].x, partie.plateau.billeMove.vecteur[i].y);
+    }
+    joueurSocket.server.move(JSON.stringify(mov.coord)); 
 }
-
+ 
 function sendMouvementFormate(vecteur, coord) {
     res = -1
     if(vecteur != null){
-        if(coord == 0){ //x
+        if(coord == 0) //x
             res = vecteur.x;
-        }else{ //y
+        else //y
             res = vecteur.y;
-        }
     }
     return res;
 }
  
 /**
- * J'ai bien reçu les informations et je passe la main à l'adversaire.
+ * J'ai bien reÃ§u les informations et je passe la main Ã  l'adversaire.
  */
 function sendFinTour() {
     joueurSocket.server.finTour();
@@ -1100,7 +1034,23 @@ function inversionMatrice(mouv) {
                     mouv.coord[i].x = 8 - mouv.coord[i].x;
                     mouv.coord[i].y = 16 - mouv.coord[i].y;
                 }
-            }
+            } 
         }
     }
+}
+
+function mouvementToClient(json, origin, destination){
+    var parse = JSON.parse(json);
+    for(i = 0; i < 5; i++){
+        if(i < 3)
+            origin.addPos(i, parse.M.Origin[i].X, parse.M.Origin[i].Y);
+        else
+            origin.addPos(i, parse.Origin[i-3].X, parse.Origin[i-3].Y);
+    }
+    for(i = 0; i < 5; i++){
+        if(i < 3)
+            destination.addPos(i, parse.M.Destination[i].X, parse.M.Destination[i].Y);
+        else
+            destination.addPos(i, parse.Destination[i-3].X, parse.Destination[i-3].Y);
+    } 
 }

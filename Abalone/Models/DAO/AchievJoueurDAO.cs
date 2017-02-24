@@ -20,7 +20,7 @@ namespace Abalone.Models{
                 cmd.Parameters.Add(new SqlParameter("id_achiev", id_achiev));
                 cmd.ExecuteNonQuery();
                 res = true;
-            } catch (SqlException e) {
+            } catch (SqlException) {
                 res = true; //Si une erreur sql se produit, c'est que la combi achiev/joueur existe déjà, donc pas besoin de la créer
             } catch (Exception e) {
                 System.Diagnostics.Debug.WriteLine(e.Message);
